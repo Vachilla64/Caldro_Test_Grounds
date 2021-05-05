@@ -1,4 +1,6 @@
 "use strict";
+alert(" Caldro is up and ready!")
+
 
 document.body.style.margin = 0;
 
