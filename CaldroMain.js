@@ -1,6 +1,4 @@
 "use strict";
-alert(" Caldro is up and ready!")
-
 
 document.body.style.margin = 0;
 
@@ -34,7 +32,7 @@ function createCanvas(addToDOM = false, id = undefined) {
   if (addToDOM) {
     let container = document.createElement("div")
     container.id = "Main_Canvas_Container";
-    console.log(container)
+    //console.log(container)
     container.appendChild(canv)
     document.body.appendChild(container);
   }
@@ -235,7 +233,7 @@ class PhysicsEngine{
 	}
 }
 let Phys = new PhysicsEngine();
-console.log(Phys)
+//console.log(Phys)
 //OBJECT MOTIOIN
 function addFriction(who, friction, deltatime){
 	let fric = [];
@@ -436,10 +434,10 @@ taskManager.prototype = {
 		let lastTime = 0
 		for(let t = 0; t < taskArray.length; t+=2){
 			let task = taskArray[t];
-			let timer = lastTime + taskArray[t+1];
-			log(task + " is a task?")
-			log(timer + " is a number?")
-			// setTimeout(task, lastTime)
+			let timer = lastTime + dtdc c &&askArray[t+1];
+			log(task! + " is a task?")
+			log(timerv  + " is a number?")
+			// setTimeout(t-ask, lastTime)
 			lastTime += timer
 		}
 		lastTime = null;
@@ -450,7 +448,7 @@ let ts = new taskManager();
 ts.chainTasks([
 	log(0), 2000,
 	log, 2000,
-	log(2), 2000,
+	log(2), 2000. 
 	])*/
 //==========//
 
@@ -488,7 +486,7 @@ function place(who, where) {
 		who.x = where.x
 		who.y = where.y
 	} else {
-		console.log("A variable passed to the function 'place' is udefinded\nWho:"+who+"\n"+"Where: "+where)
+		//console.log("A variable passed to the function 'place' is udefinded\nWho:"+who+"\n"+"Where: "+where)
 	}
 }
 
@@ -872,7 +870,7 @@ function wrapText(text, x, y, font, color, lineHeight, maxWidth, alignment =  "c
     let totalHeight = lineHeight //(cc.measureText(text).width / maxWidth)*lineHeight;
     let writeY = y
     fillColor(color)
-    cc.textAlogn = alignment;
+    cc.textAlign = alignment;
     cc.font = font
     for(let t = 0; t < splitText.length; ++t){
         let tempText = rowText + " " + splitText[t];
@@ -1190,8 +1188,8 @@ function DOMaudioHandler(){
 	this.pauseAll = function(){
 		for (let s in this.bank) {
 			if(!this.isAudioFile(s)){
-				console.log("A non audio file is present in this sound bank \n That file is of type "+typeof this.bank[s]+"\n The non audio file")
-				console.log(this.bank[s])
+				//console.log("A non audio file is present in this sound bank \n That file is of type "+typeof this.bank[s]+"\n The non audio file")
+				//console.log(this.bank[s])
 			}
 			this.bank[s].pause();
 		}
@@ -1204,10 +1202,10 @@ function DOMaudioHandler(){
 	}
 	
 	this.pause = function(id){
-		console.log("Trying to pause Audio file tagged **"+id+"**, that file is "+this.bank[id])
+		//console.log("Trying to pause Audio file tagged **"+id+"**, that file is "+this.bank[id])
 		if(this.isAudioFile(id)){
 			this.bank[id].pause();
-			console.log(typeof this.bank[id])
+			//console.log(typeof this.bank[id])
 		}
 	}
 	
@@ -1223,7 +1221,7 @@ function DOMaudioHandler(){
 		if(this.bank[id] != undefined){
 			return this.bank[id];
 		} else {
-			console.log("Tried to get Audio file tagged **"+id+"**");
+			//console.log("Tried to get Audio file tagged **"+id+"**");
 			return new Audio();
 		}
 	}
