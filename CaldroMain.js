@@ -838,7 +838,7 @@ function txt(text, x, y, font = '10px Arial', fill = 'skyblue') {
 	cc.fillText(text, x, y)
 }
 
-/* 
+
 function wrapText(text, x, y, maxWidth, lineHeight, color = "green", font = "50px Arial") {
 	cc.textAlign = 'center'
 	cc.fillStyle = color;
@@ -861,36 +861,11 @@ function wrapText(text, x, y, maxWidth, lineHeight, color = "green", font = "50p
 	}
 	cc.fillText(line, x, y);
 }
- */
+ 
 
 
-function wrapText(text, x, y, font, color, lineHeight, maxWidth, alignment =  "center"){
-    let splitText = text.split(' ');
-    let rowText = "";
-    let totalHeight = lineHeight //(cc.measureText(text).width / maxWidth)*lineHeight;
-    let writeY = y
-    fillColor(color)
-    cc.textAlign = alignment;
-    cc.font = font
-    for(let t = 0; t < splitText.length; ++t){
-        let tempText = rowText + " " + splitText[t];
-        if(cc.measureText(tempText).width > maxWidth){
-            // cc.fillText(tempText, x, writeY)
-            cc.fillText(rowText, x, writeY)
-            writeY += lineHeight;
-            rowText = splitText[t] + " ";
-            // rowText = "";
-            totalHeight += lineHeight
-        } else {
-            rowText += splitText[t]+" ";
-        }
-    }
-    cc.fillText(rowText, x, writeY)
-    
-    stRect(x, y, maxWidth, totalHeight, "white", 10)
-    Rect(x, y, maxWidth, totalHeight, "white", 10)
-    // alert(totalHeight)
-}
+
+
 
 
 function edge(x, y, col, blur, w, h) {
