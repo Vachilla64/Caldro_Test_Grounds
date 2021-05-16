@@ -843,13 +843,13 @@ function wrapText(text, x, y, maxWidth, lineHeight, color = "green", font = "50p
 	cc.textAlign = 'center'
 	cc.fillStyle = color;
 	cc.font = font;
-	let words = text.split(' ');
-	let line = '';
+	var words = text.split(' ');
+	var line = '';
 
-	for (let n = 0; n < words.length; ++n) {
-		let testLine = line + words[n] + ' ';
-		let metrics = cc.measureText(testLine);
-		let testWidth = metrics.width;
+	for (var n = 0; n < words.length; n++) {
+		var testLine = line + words[n] + ' ';
+		var metrics = cc.measureText(testLine);
+		var testWidth = metrics.width;
 		if (testWidth > maxWidth && n > 0) {
 			cc.fillText(line, x, y);
 			line = words[n] + ' ';
@@ -861,10 +861,6 @@ function wrapText(text, x, y, maxWidth, lineHeight, color = "green", font = "50p
 	}
 	cc.fillText(line, x, y);
 }
- 
-
-
-
 
 
 
