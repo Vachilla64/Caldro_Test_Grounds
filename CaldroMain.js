@@ -1,5 +1,5 @@
 "use strict";
-alert("hi")
+
 document.body.style.margin = 0;
 
 //Gets an Element by its Id
