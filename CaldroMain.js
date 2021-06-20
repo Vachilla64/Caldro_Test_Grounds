@@ -4,39 +4,39 @@ document.body.style.margin = 0;
 
 //Gets an Element by its Id
 function get(id) {
-  return document.getElementById(id);
+	return document.getElementById(id);
 };
 
 function fullscreen(id) {
-  var elem = get(id)
-  /* When the openFullscreen() function is executed, the element is viewed  in fullscreen.*/
-  if (elem.requestFullscreen) {
-    elem.requestFullscreen();
-  } else if (elem.mozRequestFullScreen) {
-    /* Firefox */
-    elem.mozRequestFullScreen();
-  } else if (elem.webkitRequestFullscreen) {
-    /* Chrome, Safari and Opera */
-    elem.webkitRequestFullscreen();
-  } else if (elem.msRequestFullscreen) {
-    /* IE/Edge */
-    elem.msRequestFullscreen();
-  }
+	var elem = get(id)
+	/* When the openFullscreen() function is executed, the element is viewed  in fullscreen.*/
+	if (elem.requestFullscreen) {
+		elem.requestFullscreen();
+	} else if (elem.mozRequestFullScreen) {
+		/* Firefox */
+		elem.mozRequestFullScreen();
+	} else if (elem.webkitRequestFullscreen) {
+		/* Chrome, Safari and Opera */
+		elem.webkitRequestFullscreen();
+	} else if (elem.msRequestFullscreen) {
+		/* IE/Edge */
+		elem.msRequestFullscreen();
+	}
 }
 
 function createCanvas(addToDOM = false, id = undefined) {
-  let canv = document.createElement('canvas');
-  if (id) {
-    canv.id = id;
-  }
-  if (addToDOM) {
-    let container = document.createElement("div")
-    container.id = "Main_Canvas_Container";
-    //console.log(container)
-    container.appendChild(canv)
-    document.body.appendChild(container);
-  }
-  return canv;
+	let canv = document.createElement('canvas');
+	if (id) {
+		canv.id = id;
+	}
+	if (addToDOM) {
+		let container = document.createElement("div")
+		container.id = "Main_Canvas_Container";
+		// console.log(container)
+		container.appendChild(canv)
+		document.body.appendChild(container);
+	}
+	return canv;
 };
 
 
@@ -54,6 +54,22 @@ class Point3D {
 		this.z = z;
 	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 "use strict";
 
@@ -76,38 +92,39 @@ function del(name) {
 	if (data != null) {}
 }
 
-"use strict";
 
+
+"use strict";
 function degToRad(degree) {
-  return degree * (Math.PI / 180);
+	return degree * (Math.PI / 180);
 }
 
 function radToDeg(radians) {
-  return (radians * 180) / Math.PI;
+	return (radians * 180) / Math.PI;
 }
 
-function tan(angle) {
-  if (angle == 180) {
-    return 0;
-  } else if (angle == 360) {
-    return 0;
-  } else if (angle == 90 || angle == 270) {
-    return "Invalid Input :(";
-  } else {
-    return (Math.tan(degToRad(angle)))
-  }
+function tan(angle){
+	if(angle == 180){
+		return 0;
+	} else if(angle == 360){
+		return 0;
+	} else if(angle == 90 || angle == 270){
+		return "Invalid Input :(";
+	} else {
+		return (Math.tan(degToRad(angle)))
+	}
 }
 
-function tanInverse(ratio) {
-  return radToDeg(Math.atan((ratio)))
+function tanInverse(ratio){
+	return radToDeg(Math.atan((ratio)))
 }
 
-function sin(angle) {
-  return (Math.sin(degToRad(angle)))
+function sin(angle){
+	return (Math.sin(degToRad(angle)))
 }
 
-function cos(angle) {
-  return (Math.cos(degToRad(angle)))
+function cos(angle){
+	return (Math.cos(degToRad(angle)))
 }
 
 
@@ -115,40 +132,56 @@ function cos(angle) {
 
 
 
-function scaleTo(number = 5, numberMin = 0, numberMax = 10, scaleMin = 0, scaleMax = 1) {
-  return ((scaleMax - scaleMin) / (numberMax - numberMin)) * number
+function scaleTo(number = 5, numberMin = 0, numberMax = 10, scaleMin = 0, scaleMax = 1){
+   let percentage = (number - numberMin) / (numberMax - numberMin)
+   return interpolate(percentage, scaleMin, scaleMax)
 }
 
-function angleBetweenTwoPoints(referencePoint, point2) {
-  if (referencePoint.x == point2.x) {
-    if (referencePoint.y > point2.y) {
-      return 0;
+function approach(number = 10, destination = 0, speed = 0.2, deltatime = Caldro.time.deltatime, margin = 0.001) {
+	let arrived = false
+	// margin = Math.abs(destination - number) * margin
+	if (Math.abs(destination - number) < margin) {
+		arrived = true;
+		number = destination
+	} else {
+		speed = 1 / (1 + (deltatime * speed))
+		number = destination + (number - destination) * speed;
+	}
+	return { value: number, arrived: arrived };
+} 
+
+function interpolate(percentage = 0.5, minNumber = 0, maxNumber = 1){
+	return minNumber + (maxNumber - minNumber) * percentage;
+}
+
+function angleBetweenPoints(referencePoint, point2){
+    if(referencePoint.x == point2.x){
+       if(referencePoint.y > point2.y){
+          return 0;
+       } else {
+           return 180;
+       }
+    }
+    if(referencePoint.x < point2.x){
+        if(referencePoint.y == point2.y){
+            return 90;
+        } else if(referencePoint.y > point2.y){
+            return tanInverse(((point2.x - referencePoint.x)/(referencePoint.y - point2.y)))
+        } else if(referencePoint.y <  point2.y){
+            return tanInverse(((referencePoint.y - point2.y)/(referencePoint.x - point2.x))) + 90
+        }
     } else {
-      return 180;
+        if(referencePoint.y == point2.y){
+            return 270;
+        } else if(referencePoint.y > point2.y){
+            return -tanInverse(((point2.y - referencePoint.y)/(referencePoint.x - point2.x))) + 270
+        } else if(referencePoint.y <  point2.y){
+            return tanInverse(((point2.x - referencePoint.x)/(referencePoint.y - point2.y))) + 180
+        }
     }
-  }
-  if (referencePoint.x < point2.x) {
-    if (referencePoint.y == point2.y) {
-      return 90;
-    } else if (referencePoint.y > point2.y) {
-      return tanInverse(((point2.x - referencePoint.x) / (referencePoint.y - point2.y)))
-    } else if (referencePoint.y < point2.y) {
-      return tanInverse(((referencePoint.y - point2.y) / (referencePoint.x - point2.x))) + 90
-    }
-  } else {
-    if (referencePoint.y == point2.y) {
-      return 270;
-    } else if (referencePoint.y > point2.y) {
-      return -tanInverse(((point2.y - referencePoint.y) / (referencePoint.x - point2.x))) + 270
-    } else if (referencePoint.y < point2.y) {
-      return tanInverse(((point2.x - referencePoint.x) / (referencePoint.y - point2.y))) + 180
-    }
-  }
-  return "Not being Handled yet";
-  // let body1 = referencePoint;
-  // let body2 = point2;
-  // return(((body2.x*body1.x) + (body2.y*body1.y)) / (Math.sqrt(body1.x**2 + body1.y**2) + Math.sqrt(body2.x**2 + body2.y**2)))
 }
+
+
 
 function collided(a, b, type = 'aabb') {
 	if (type == 'aabb') {
@@ -168,10 +201,32 @@ function collided(a, b, type = 'aabb') {
 	}
 }
 
-function pointIn(point, object, typeOfObject = "box"){
-	
+function pointIsIn(point, object, typeOfObject = "box"){
+	if(typeOfObject.includes("box")){
+		return (
+			point.x >= object.x - object.width/2 &&
+			point.x <= object.x + object.width/2 &&
+			point.y >= object.y - object.height/2 &&
+			point.y <= object.y + object.height/2
+		)
+	}
 };
 
+
+function pointIsInCirle(point, circle) {
+    return dist(point, circle) < circle.radius;
+}
+
+function animateButton(button, change = 0.2, delay = 100) {
+	let Cwidth = button.width * change
+	let Cheight = button.height * change
+	button.width -= Cwidth
+	button.height -= Cheight
+	setTimeout(function () {
+		button.width += Cwidth;
+		button.height += Cheight;
+	}, delay)
+}
 
 
 function contain(who, type = 'box') {
@@ -183,13 +238,13 @@ function contain(who, type = 'box') {
 }
 
 //Define Bodies
-function rectBody(x = 0, y = 0, width = 0.5, height = 0.5){
+/* function rectBody(x = 0, y = 0, width = 0.5, height = 0.5){
 	this.x = x;
 	this.y = y;
 	this.width = width;
 	this.height = height;
 	this.bodyShape = "rectangle"
-}
+} */
 
 function drawBody(body, color = "skyblue"){
 	Rect(body.x, body.y, body.width, body.height, color)
@@ -198,12 +253,19 @@ function drawBody(body, color = "skyblue"){
 class PhysicsEngine{
 	constructor(){
 		this.bodies = new Array();
-		this.gravity = 9.8;
+		this.universalForce = [0, 0]
 		this.simulationSpeed = 1;
 	}
-	update(epochs, deltatime = Caldro.time.deltatime){
-		if(epochs <= 0){
-			console.error("Amount of epochs passed to "+getConstructorName(this)+" is lower than the range. Anount of epochs was "+epochs);
+	addBodes(bodies = []){
+		if(typeof bodies == "object"){
+			for(let b = 0; b < bodies.length; ++b){
+				this.bodies.push(bodies[b])
+			}
+		}
+	}
+	update(deltatime = Caldro.time.deltatime, epochs = 1){
+		if(isWithinRange(epochs, 1, 1000)){
+			console.error("Amount of epochs passed to "+getConstructorName(this)+" is lower than the range[1 -> 1000]. Anount of epochs was "+epochs);
 		} else {
 			deltatime = (deltatime*this.simulationSpeed)/epochs;
 			for(let e = 0; e < epochs; ++e){
@@ -225,15 +287,33 @@ class PhysicsEngine{
 		this.density = 100;
 		this.xv = 0;
 		this.yv = 0;
-
+		this.type = "box"
 	}
 
 	collided(body1, body2){
 		
 	}
 }
-let Phys = new PhysicsEngine();
-//console.log(Phys)
+let CaldroPhysics = new PhysicsEngine();
+
+class verletPhysicsEngine{
+	constructor(){
+		this.bodies = new Array();
+		this.points = new Array();
+		this.constraints = new Array();
+		this.gravity = 9.8;
+		this.friction = 0.999;
+		this.bouce = 0.5;
+	}
+	updatePoints(deltatime = 1){
+		
+	}
+}
+
+let engine = new verletPhysicsEngine()
+engine.updatePoints()
+
+// console.log(Phys)
 //OBJECT MOTIOIN
 function addFriction(who, friction, deltatime){
 	let fric = [];
@@ -242,45 +322,6 @@ function addFriction(who, friction, deltatime){
 	who.xv *= fric[0];
 	who.yv *= fric[1];
 	fric =  null;
-}
-
- function approach(number = 10, destination = 0, speed = 0.2, deltatime = Caldro.time.deltatime, margin = 0.001) {
-	let arrived = false
-	// margin = Math.abs(destination - number) * margin
-	if (Math.abs(destination - number) < margin) {
-		arrived = true;
-		number = destination
-	} else {
-		speed = 1 / (1 + (deltatime * speed))
-		number = destination + (number - destination) * speed;
-	}
-	return { value: number, arrived: arrived };
-} 
-/* 
-function approach(number = 10, destination = 0, speed = 0.2, deltatime = Caldro.time.deltatime, margin = 0.001) {
-	if (Math.abs(destination - number) < margin) {
-		number = destination
-	} else {
-		speed = 1 / (1 + (deltatime * speed))
-		number = destination + (number - destination) * speed;
-	}
-	return number
-} */
-
-function interpolate(number = 10, destination = 0, speed = 1, deltatime = Caldro.time.deltatime){
-	let arrived = false;
-	if(number < destination){
-		number = limit(number+(speed*deltatime), destination, number);
-		if(number == destination){
-			arrived = true;
-		}		
-	} else {
-		number = limit(number-(speed*deltatime), number, destination);
-		if(number == destination){
-			arrived = true;
-		}		
-	}
-	return { value: number, arrived: arrived };
 }
 
 function getBounds(what) {
@@ -364,11 +405,14 @@ class polygon{
 	}
 }
 
+
 var ORIGIN = new Point2D(0, 0);
 var INFINITY = Math.pow(10, 1000)
 
 
-const nullFunction = function() {};
+const nullFunction = function(){};
+const NULLFUNCTION = nullFunction;
+
 
 "use strict";
 
@@ -419,11 +463,26 @@ function clearAllTasks(){
 }
 
 function log(info = 1){
-	console.log(info)
+	console.error(info)
 }
 
 function getConstructorName(object){
 	return object.__proto__.constructor.name;
+}
+
+function checkNaN(value = 0, setToIfNaN = true, logMessage = null){
+	if(typeof value != "number"){
+		if(logMessage != null){
+			console.log(logMessage);
+		}
+		return setToIfNaN;
+	}
+	return false
+}
+
+function isWithinRange(number = 0, mininmumNumber = 0, maximumNumber = 1){
+	if(number >= mininmumNumber && number <= maximumNumber) return true;
+	return false;
 }
 /*function taskManager(){
 	
@@ -434,10 +493,10 @@ taskManager.prototype = {
 		let lastTime = 0
 		for(let t = 0; t < taskArray.length; t+=2){
 			let task = taskArray[t];
-			let timer = lastTime + dtdc c &&askArray[t+1];
-			log(task! + " is a task?")
-			log(timerv  + " is a number?")
-			// setTimeout(t-ask, lastTime)
+			let timer = lastTime + taskArray[t+1];
+			log(task + " is a task?")
+			log(timer + " is a number?")
+			// setTimeout(task, lastTime)
 			lastTime += timer
 		}
 		lastTime = null;
@@ -448,20 +507,26 @@ let ts = new taskManager();
 ts.chainTasks([
 	log(0), 2000,
 	log, 2000,
-	log(2), 2000. 
+	log(2), 2000,
 	])*/
 //==========//
 
 
 //==========//
 
-
-function choose(array) {
-	return array[gen(0, array.length - 1)]
+function timeTask(task = nullFunction){
+	if(typeof task != "function") return false;
+	let startTime = performance.now(); 
+	task();
+	return performance.now() - startTime;
 }
 
-function gen(a, b, precise  = false) {
-	if (precise) {
+function choose(array) {
+	return array[gen(0, array.length - 1, false)]
+}
+
+function gen(a = 0, b = 1, float  = true) {
+	if (float) {
 		return a + Math.random() * (b - a);
 	} else {
 		return a + Math.floor(Math.random() * (b - a + 1));
@@ -486,7 +551,7 @@ function place(who, where) {
 		who.x = where.x
 		who.y = where.y
 	} else {
-		//console.log("A variable passed to the function 'place' is udefinded\nWho:"+who+"\n"+"Where: "+where)
+		console.error("A variable passed to the function 'place' is udefinded\nWho:"+who+"\n"+"Where: "+where)
 	}
 }
 
@@ -532,67 +597,69 @@ function arrayMax(array){
     return max
 }
 
-class vector2D {
-  constructor(x, y) {
-    this.x = x;
-    this.y = y;
-  }
-  normalize(sourceVector = originVector) {
-    let mag = dist(this, sourceVector);
-    mag = mag > 2 ? mag : 1;
-    return new vector2D(this.x /= mag, this.y /= mag)
-  }
-  magnitude(sourceVector = originVector) {
-    return dist(this, sourceVector)
-  }
-  subtract(vector = originVector) {
-    return new vector2D(this.x - vector.x, this.y - vector.y)
-  }
-  add(vector = originVector) {
-    return new vector(this.x)
-  }
-  multiply(number = 1) {
-    return new vector2D(this.x *= number, this.y *= number)
-  }
-  normal() {
-    return new vector2D(-this.y, this.x);
-  }
+
+class vector2D{
+    constructor(x, y){
+        this.x = x;
+        this.y = y;
+    }
+    normalize(sourceVector = originVector){
+        let mag = dist(this, sourceVector);
+        mag = mag>2? mag : 1;
+        return new vector2D(this.x /= mag, this.y /= mag)
+    }
+    magnitude(sourceVector = originVector){
+        return dist(this, sourceVector)
+    }
+    subtract(vector = originVector){
+        return  new vector2D(this.x - vector.x, this.y - vector.y)
+    }
+    add(vector = originVector){
+        return new vector(this.x)
+    }
+    multiply(number = 1){
+        return new vector2D(this.x *= number, this.y *= number)
+    }
+    normal(){
+        return new vector2D(-this.y, this.x);
+    }
 }
 
 const originVector = new vector2D(0, 0)
 
-function normalize(vector = originVector, sourceVector = ORIGIN) {
-  let mag = dist(vector, sourceVector);
-  vector.x /= mag;
-  vector.y /= mag;
+function normalize(vector = originVector, sourceVector = ORIGIN){
+    let mag = dist(vector, sourceVector);
+    vector.x /= mag; 
+    vector.y /= mag;
 }
 
-function magnitude(vector = originVector, sourceVector = ORIGIN) {
-  return dist(vector, sourceVector)
+function magnitude(vector = originVector, sourceVector = ORIGIN){
+    return dist(vector, sourceVector)
 }
 
-function dotProduct(vector1, vector2) {
-  return vector1.x * vector2.x + vector1.y * vector2.y;
+function dotProduct(vector1, vector2){
+    return vector1.x * vector2.x + vector1.y * vector2.y;
 }
 
 
 
-class matrix {
-  constructor(rows = 2, columns = 2, initialValues = 0) {
-    this.mat = new Array();
-    for (let r = 0; r < rows; ++r) {
-      let Row = new Array();
-      let value = initialValues
-      for (let c = 0; c < columns; ++c) {
-        if (typeof initialValues == "array") {
-          value = gen(initialValues[0], initialValues[1], initialValues[2])
+class matrix{
+    constructor(rows = 2, columns = 2, initialValues = 0){
+        this.mat = new Array();
+        for(let r = 0; r < rows; ++r){
+            let Row = new Array();
+            let value = initialValues
+            for(let c = 0; c < columns; ++c){
+                if(typeof initialValues == "array"){
+                    value = gen(initialValues[0], initialValues[1], initialValues[2])
+                }
+                Row.push(value)
+            }
+            this.mat.push(Row)
         }
-        Row.push(value)
-      }
-      this.mat.push(Row)
     }
-  }
 }
+
 
 "use stricy";
 
@@ -707,15 +774,25 @@ function canvasImageManager(imageCanvas = document.createElement('canvas'))
 	};
 };
 
+
 "use strict";
 
-var c = createCanvas(true, "Caldro Canvas");
+var c = createCanvas(true, "Caldro_Canvas");
 var cc = c.getContext('2d');
 c.style.position = 'fixed';
-
+c.onresize = nullFunction;
 function adjustCanvas(canvas = c, width = window.innerWidth, height = window.innerHeight, aspectRatio = Caldro.display.aspectRatio) {
+	canvas.formerWidth = canvas.width;
+	canvas.formerHeight = canvas.height;
 	canvas.width = width
 	canvas.height = height
+	if (canvas.formerWidth != canvas.width || canvas.formerHeight != canvas.height) {
+		if (canvas.onresize) {
+			canvas.onresize();
+		} else {
+			canvas.onresize = nullFunction;
+		}
+	}
 	canvas.w = canvas.width;
 	canvas.h = canvas.height;
 	canvas.hw = canvas.w / 2;
@@ -728,9 +805,10 @@ function adjustCanvas(canvas = c, width = window.innerWidth, height = window.inn
 	canvas.vh = canvas.h / 100;
 	canvas.xc = canvas.width / 2;
 	canvas.yc = canvas.height / 2;
-	canvas.center = {x: canvas.xc, y: canvas.yc};
+	canvas.center = { x: canvas.xc, y: canvas.yc };
 	canvas.font = '10px Arial';
 	canvas.orientation = (canvas.w == canvas.max ? 'landscape' : 'potrait')
+	cc.imageSmoothingEnabled = false
 };
 
 //Clears the canvas (will clear the whole canvas if no argument is passed)
@@ -738,20 +816,41 @@ function clear(x = 0, y = 0, w = c.width, h = c.height) {
 	cc.clearRect(x, y, w, h)
 }
 
-function fillColor(color = "skyblue", context = cc){
-	if(context.fillStyle!=color){
+function fillColor(color = "skyblue", context = cc) {
+	if (context.fillStyle != color) {
 		context.fillStyle = color
 	}
 }
 
-function strokeColor(color = "skyblue", context = cc){
-	if(context.strokeStyle!=color){
+function strokeColor(color = "skyblue", context = cc) {
+	if (context.strokeStyle != color) {
 		context.strokeStyle = color
 	}
 }
 
 //Simplification of the fillRect method 
 function rect(x = 0, y = 0, w = c.width, h = c.height, color = 'black') {
+/* 	if (Caldro) {
+		if(!Caldro.info){
+			fillColor(color)
+			cc.fillRect(x, y, Math.round(w), Math.round(h));
+			return
+		}
+		let cam = Caldro.info.currentCamera;
+		if (
+			// x <= cam.x + cam.width/2 &&
+			// x + w >= cam.x - cam.width/2 &&
+			// y <= cam.y + cam.height/2 &&
+			// y + h >= cam.y - cam.height/2
+			collided(cam, {
+				x: x+w/2, y:y+w/2, width:w, height:h
+			})
+		) {
+			fillColor(color)
+			cc.fillRect(x, y, Math.round(w), Math.round(h));
+		}
+		return;
+	} */
 	fillColor(color)
 	cc.fillRect(x, y, Math.round(w), Math.round(h));
 }
@@ -793,24 +892,24 @@ function line(a, b, c, d, col, lw) {
 	cc.stroke();
 }
 
-function drawLine(startX, startY, length = 100, angle = 0, color = "skyblue", lineWidth = 2){
-    cc.beginPath();
-    cc.moveTo(startX, startY);
-    let rad = degToRad(angle);
-    cc.lineTo(startX + (length*Math.sin(rad)), (startY - (length*Math.cos(rad))))
-    cc.closePath();
-    strokeColor(color);
-    cc.lineWidth = lineWidth
-    cc.stroke();
+function drawLine(startX, startY, length = 100, angle = 0, color = "skyblue", lineWidth = 2) {
+	cc.beginPath();
+	cc.moveTo(startX, startY);
+	let rad = degToRad(angle);
+	cc.lineTo(startX + (length * Math.sin(rad)), (startY - (length * Math.cos(rad))))
+	cc.closePath();
+	strokeColor(color);
+	cc.lineWidth = lineWidth
+	cc.stroke();
 }
 
-function drawRegularPolygon(x = 0, y = 0, radius = 1, numberOfVertuces = 3, color = "skyblue"){
+function drawRegularPolygon(x = 0, y = 0, radius = 1, numberOfVertuces = 3, color = "skyblue") {
 	let TWO_PI = Math.PI * 2;
 	cc.beginPath()
 	for (let angle = 0; angle < TWO_PI; angle += TWO_PI / numberOfVertuces) {
 		let px = x + radius * Math.sin(angle);
 		let py = y + radius * Math.cos(angle)
-		if(angle == 0){
+		if (angle == 0) {
 			cc.moveTo(px, py)
 		} else {
 			cc.lineTo(px, py)
@@ -822,47 +921,137 @@ function drawRegularPolygon(x = 0, y = 0, radius = 1, numberOfVertuces = 3, colo
 }
 
 //sets the font style
-function font(size, font = 'Arial') {
-	let fnt = size + 'px ' + font;
+function font(size = 30, font = 'Arial', thickness = "500") {
+	let fnt = thickness + " " + size + "px " + font;
 	cc.font = fnt;
-	c.font = fnt;
-	return font;
+	return fnt;
 }
 
 //Simplification of the text method (function)
-function txt(text, x, y, font = '10px Arial', fill = 'skyblue') {
+function txt(text, x, y, font = '30px Arial', fill = 'skyblue', alignment = "center") {
 	cc.fillStyle = fill;
 	cc.font = font
-	cc.textAlign = 'center'
+	cc.textAlign = alignment
 	cc.textBaseline = "middle"
-	cc.fillText(text, x, y)
+	fillText(text, x, y)
 }
 
+function fillText(text, x, y) {
+	cc.save()
+	if (Caldro.rendedring.textOutlineThickness > 0) {
+		cc.lineWidth = Caldro.rendedring.textOutlineThickness
+		strokeColor(Caldro.rendedring.textOutlineColor)
+		cc.strokeText(text, x, y)
+	}
+	glow(0)
+	cc.fillText(text, x, y)
+	cc.restore();
+}
+
+function textOutline(thickness = 0, style = "black") {
+	if (thickness >= 0) {
+		Caldro.rendedring.textOutlineThickness = thickness;
+	}
+	Caldro.rendedring.textOutlineColor = style
+}
 
 function wrapText(text, x, y, maxWidth, lineHeight, color = "green", font = "50px Arial") {
+	let cc = Caldro.renderer.context;
+	cc.save()
 	cc.textAlign = 'center'
-	cc.fillStyle = color;
 	cc.font = font;
-	var words = text.split(' ');
-	var line = '';
+	cc.lineWidth = 5
+	cc.lineCap = "round";
+	cc.lineJoin = "round";
+	let unCutWords = text.split(' ');
+	let words = new Array()
+	for (let unCutWord of unCutWords) {
+		let cutWords = unCutWord.split('\n');
+		for (let word of cutWords) {
+			if (word != "") {
+				words.push(word);
+			} else {
+				words.push(null)
+			}
+		}
+	}
+	/* doTask("kk", function(){
+		console.log(unCutWords)
+		console.log(words)
+	}) */
+	let line = '';
+	let height = lineHeight
+	let width = 0
 
-	for (var n = 0; n < words.length; n++) {
-		var testLine = line + words[n] + ' ';
-		var metrics = cc.measureText(testLine);
-		var testWidth = metrics.width;
+	fillColor(color)
+	strokeColor("black")
+	for (let n = 0; n < words.length; ++n) {
+		if (words[n] == null) {
+			fillText(line, x, y);
+			width = Math.max(width, cc.measureText(line).width)
+			y += lineHeight * 2;
+			height += lineHeight;
+			line = ''
+			/* doTask("sjd", function(){
+				console.log("I did a line break\nfor: "+words[n]+"")
+			}) */
+			continue;
+		}
+		let testLine = line + words[n] + ' ';
+		let metrics = cc.measureText(testLine);
+		let testWidth = metrics.width;
+		// width = Math.max(width, testWidth)
 		if (testWidth > maxWidth && n > 0) {
-			cc.fillText(line, x, y);
+			fillText(line, x, y);
+			width = Math.max(width, cc.measureText(line).width)
 			line = words[n] + ' ';
 			y += lineHeight;
+			height += lineHeight;
 		}
 		else {
 			line = testLine;
 		}
 	}
-	cc.fillText(line, x, y);
+	fillText(line, x, y);
+
+	// return {x: x, y: y, width: width, height: height};
+	/* alpha(0.4)
+	rect(x- width/2, y-height, width, height, "black")
+	alpha(1) */
+	cc.restore();
 }
 
 
+/* 
+function wrapText(text, x, y, font, color, lineHeight, maxWidth, alignment =  "center"){
+	let splitText = text.split(' ');
+	let rowText = "";
+	let totalHeight = lineHeight //(cc.measureText(text).width / maxWidth)*lineHeight;
+	let writeY = y
+	// fillColor(color)\\
+	cc.fillStyle = color
+	cc.textAlogn = alignment;
+	cc.font = font
+	for(let t = 0; t < splitText.length; ++t){
+		let tempText = rowText + " " + splitText[t];
+		if(cc.measureText(tempText).width > maxWidth){
+			// cc.fillText(tempText, x, writeY)
+			cc.fillText(rowText, x, writeY)
+			writeY += lineHeight;
+			rowText = splitText[t] + " ";
+			// rowText = "";
+			totalHeight += lineHeight
+		} else {
+			rowText += splitText[t]+" ";
+		}
+	}
+	cc.fillText(rowText, x, writeY)
+    
+	stRect(x, y, maxWidth, totalHeight, "white", 10)
+	Rect(x, y, maxWidth, totalHeight, "white", 10)
+	// alert(totalHeight)
+}
+ */
 
 function edge(x, y, col, blur, w, h) {
 	cc.shadowColor = col
@@ -884,7 +1073,7 @@ function edges(w, h, blur, color) {
 }
 
 function glow(amount = 10, color = 'white') {
-	if(Caldro.rendedring.glow){
+	if (Caldro.rendedring.glow) {
 		cc.shadowBlur = amount;
 		cc.shadowColor = color;
 	}
@@ -935,9 +1124,10 @@ function CurvedRect(x, y, width, height, fill, dotBorderRadius = 10) {
 	circle(this.x+this.hw,this.y,this.hh,this.color)*/
 };
 
-function StCurvedRect(x, y, width, height, fill, dotBorderRadius = 10, lw = 5) {
+function stCurvedRect(x, y, width, height, fill, dotBorderRadius = 10, lw = 5) {
 	let hw = width / 2;
 	let hh = height / 2;
+	cc.lineWidth = lw;
 	cc.beginPath();
 	cc.moveTo(x - hw + dotBorderRadius, y - hh);
 	cc.lineTo(x + hw - dotBorderRadius, y - hh);
@@ -949,8 +1139,7 @@ function StCurvedRect(x, y, width, height, fill, dotBorderRadius = 10, lw = 5) {
 	cc.lineTo(x - hw, y - hh + dotBorderRadius);
 	cc.arc(x - hw + dotBorderRadius, y - hh + dotBorderRadius, dotBorderRadius, Math.PI, Math.PI * 1.5);
 	cc.closePath();
-	cc.fillStyle = fill;
-	cc.lineWidth = lw;
+	strokeColor(fill)
 	cc.stroke();
 	hw = hh = null;
 	/*circle(this.x-this.hw,this.y,this.hh,this.color)
@@ -1008,7 +1197,58 @@ function triangle(x, y, length, color, angle = 0, direction = 'up') {
 	// cc.stroke()
 }
 
-function renderBody(body, color){
+function stTriangle(x, y, length, color, lineWdith = 2, angle = 0, direction = 'up') {
+	let sqrt3 = 1.7321;
+	let height = length * (sqrt3 / 2)
+	// length = height
+	let a;
+	let b;
+	let c;
+	if (direction == 'up') {
+		a = new Point2D(0, -height / 2);
+		b = new Point2D(-length / 2, +height / 2);
+		c = new Point2D(length / 2, +height / 2);
+	} else if (direction == 'down') {
+		a = new Point2D(0, +height / 2);
+		b = new Point2D(-length / 2, -height / 2);
+		c = new Point2D(+length / 2, -height / 2);
+	} else if (direction == 'right') {
+		a = new Point2D(+length / 2, 0);
+		b = new Point2D(-height / 2, -length / 2);
+		c = new Point2D(-height / 2, +length / 2);
+	} else if (direction == 'left') {
+		a = new Point2D(-length / 2, 0);
+		b = new Point2D(+height / 2, -length / 2);
+		c = new Point2D(+height / 2, +length / 2);
+	}
+	// Rect(x-length, y, 50, height, 'white')
+	// angle = 10
+	// Game.device.controls.active = false
+	/*a.x +=Math.sin(degToRad(angle))*height/2
+	a.y -=Math.cos(degToRad(angle))*height/2
+	b.x +=Math.sin(degToRad(angle))*height/2
+	b.y -=Math.cos(degToRad(angle))*height/2
+	c.x +=Math.sin(degToRad(angle))*height/2
+	c.y -=Math.cos(degToRad(angle))*height/2
+	*/
+	cc.save()
+	cc.translate(x, y)
+	cc.rotate(degToRad(angle))
+	cc.beginPath();
+	cc.moveTo(a.x, a.y);
+	cc.lineTo(b.x, b.y);
+	cc.lineTo(c.x, c.y);
+	cc.closePath();
+	strokeColor(color)
+	cc.lineWidth = lineWdith
+	cc.stroke();
+	cc.restore()
+	// Rect(x, y, 10, 10,  'rgba(255,255,255,0.7)')
+	// cc.lineWidth = 10
+	// cc.stroke()
+}
+
+function renderRectBody(body, color) {
 	Rect(body.x, body.y, body.width, body.height, color)
 }
 
@@ -1031,57 +1271,59 @@ function getColor(x, y) {
 	}
 }
 
+
 "use strict";
 
 function cordShow(who, fill = 'green', w = 300, h = 2, showCordValue = false) {
-  if (who != undefined) {
-    let x = who.x;
-    let y = who.y;
-    Rect(x, y, w, h, fill)
-    Rect(x, y, h, w, fill)
-    if (showCordValue == true) {
-      txt('x : ' + x + ', y : ' + y, x + 50, y - 50)
-    }
-  }
+	if (who != undefined) {
+		let x = who.x;
+		let y = who.y;
+		Rect(x, y, w, h, fill)
+		Rect(x, y, h, w, fill)
+		if (showCordValue == true) {
+			txt('x : ' + x + ', y : ' + y, x + 50, y - 50)
+		}
+	}
 }
 
 function meter(x, y, width, height, value = 50, lowest_limit = 0, highest_limit = 100, colors = ['#22ff12', 'orange', 'red'], steps = 100)
 {
-  let color = colors[0]
-  steps = width / steps
-  limit(value, lowest_limit, highest_limit);
-  let percent = (value / highest_limit) * 100
-  /* if (percent < 70) {
-  	color = colors[1]
-  }
-  if (percent < 30) {
-  	color = colors[2]
-  } */
-  let valueLenght = steps * percent
-  rect(x - width / 2, y - height / 2, valueLenght, height, color)
-  stRect(x, y, width, height, 'white', 2)
+	let color = colors[0]
+	steps = width / steps
+	limit(value, lowest_limit, highest_limit);
+	let percent = (value / highest_limit) * 100
+	/* if (percent < 70) {
+		color = colors[1]
+	}
+	if (percent < 30) {
+		color = colors[2]
+	} */
+	let valueLenght = limit(steps * percent, 0, width)
+	rect(x - width / 2, y - height / 2, valueLenght, height, color)
+	stRect(x, y, width, height, 'white', 2)
 }
 
-function checkBoard(x, y, width, height, rows = 8, columns = 8, color1 = "white", color2 = "black") {
-  // let rowWidth = width / rows;
-  let rowHeight = height / rows;
-  let columnWidth = width / columns;
-  // let columnHeight = height / columns;
-  let drawX = x;
-  let drawY = y;
-  let colorIndex = 0
-  for (let r = 0; r < rows; ++r) {
-    for (let c = 0; c < columns; ++c) {
-      let color = colorIndex == 0 ? color1 : color2;
-      rect(drawX, drawY, columnWidth, rowHeight, color);
-      drawX += columnWidth;
-      colorIndex = (colorIndex + 1) % 2
-    }
-    colorIndex = (colorIndex + 1) % 2
-    drawX = x;
-    drawY += rowHeight;
-  }
+function checkBoard(x, y, width, height, rows = 8, columns = 8, color1 = "white", color2 = "black"){
+	// let rowWidth = width / rows;
+	let rowHeight = height / rows;
+	let columnWidth = width / columns;
+	// let columnHeight = height / columns;
+	let drawX = x;
+	let drawY = y;
+	let colorIndex = 0
+	for(let r = 0; r < rows; ++r){
+		for(let c = 0; c < columns; ++c){
+			let color = colorIndex == 0? color1 : color2;
+			rect(drawX, drawY, columnWidth, rowHeight, color);
+			drawX += columnWidth;
+			colorIndex = (colorIndex + 1) % 2
+		}
+		colorIndex = (colorIndex + 1) % 2
+		drawX = x;
+		drawY += rowHeight;
+	}
 }
+
 
 "use strict";
 
@@ -1120,118 +1362,138 @@ function checkBoard(x, y, width, height, rows = 8, columns = 8, color1 = "white"
 }*/
 
 // console.log(1/60)
-
-function DOMaudioHandler(){
+function DOMaudioManager() {
 	let audioManager = this;
 	this.initState = false;
 	this.loadState = false;
+	this.active = true
 	this.addedSounds = 0;
 	this.loadedSounds = 0;
 	this.masterVolume = 1;
+	this.fileSrcHeader = "";
 	this.bank = [];
 
-	this.onInit = function() {};
-	this.initialize = function() {
-		for (let s = 0; s < this.bank.length; ++s) {
-			try{
-			let sound = this.bank[s]
-			let former_volume = sound.volume;
-			sound.load();
-			sound.currentTime = 1;
-			sound.volume = 0;
-			sound.play();
-			setTimeout(function(){
-				sound.pause();
-				sound.volume = former_volume;
-				// this.onInit();
-			}, 1000)
-			sound.currentTime = 0;
-			} catch(e){
-	/*			window.onerror = function(e){
-					return true;
-				}*/
-  		}
-		}
-		this.initState = true
+	this.onInit = function () { };
+	this.initialize = function () {
+		if (!this.active) return;
+			for (let s = 0; s < this.bank.length; ++s) {
+				// try {
+					let sound = this.bank[s]
+					let former_volume = sound.volume;
+					sound.load();
+					sound.onload = function () {
+
+					}
+					sound.currentTime = 1;
+					sound.volume = 0;
+					sound.loop = true
+					sound.play();
+					sound.loop = false;
+					setTimeout(function () {
+						sound.pause();
+						sound.volume = former_volume;
+						// this.onInit();
+					}, 1000)
+					sound.currentTime = 0;
+				// } catch (e) {
+					/*window.onerror = function(e){
+					  return true;
+					}*/
+				// }
+			}
 		// console.log("initialized")
 	};
-	
-	this.pauseAll = function(){
+
+	this.pauseAll = function () {
+		if (!this.active) return;
 		for (let s in this.bank) {
-			if(!this.isAudioFile(s)){
+			if (!this.isAudioFile(s) && Caldro.info.loggingIssus()) {
 				//console.log("A non audio file is present in this sound bank \n That file is of type "+typeof this.bank[s]+"\n The non audio file")
-				//console.log(this.bank[s])
+				// console.log(this.bank[s])
 			}
 			this.bank[s].pause();
 		}
 	}
-	
-	this.play = function(id){
-		if(this.bank[id]){
-			this.bank[id].play();
+
+	this.play = function (id, cloneNode = false) {
+		if (!this.active) return;
+		if (this.bank[id]) {
+			if (cloneNode) {
+				let sound = this.bank[id].cloneNode(true)
+				sound.volume = this.bank[id].volume;
+				sound.play();
+			} else {
+				this.bank[id].play();
+			}
 		}
-	}
-	
-	this.pause = function(id){
-		//console.log("Trying to pause Audio file tagged **"+id+"**, that file is "+this.bank[id])
-		if(this.isAudioFile(id)){
-			this.bank[id].pause();
-			//console.log(typeof this.bank[id])
-		}
-	}
-	
-	this.getTime = function(id){
-		return this.bank[id].currentTime;
-	}
-	
-	this.isAudioFile = function(id){
-		return getConstructorName(this.bank[id]) == "HTMLAudioElement"
 	}
 
-	this.get = function(id){
-		if(this.bank[id] != undefined){
+	this.pause = function (id) {
+		if (!this.active) return;
+		// console.log("Trying to pause Audio file tagged **"+id+"**, that file is "+this.bank[id])
+		if (this.isAudioFile(id)) {
+			this.bank[id].pause();
+			// console.log(typeof this.bank[id])
+		}
+	}
+
+	this.getTime = function (id) {
+		return this.bank[id].currentTime;
+	}
+
+	this.isAudioFile = function (id) {
+		if (this.initState)
+			return getConstructorName(this.bank[id]) == "HTMLAudioElement"
+	}
+
+	this.get = function (id) {
+		if (this.bank[id] != undefined) {
 			return this.bank[id];
 		} else {
-			//console.log("Tried to get Audio file tagged **"+id+"**");
+			// console.log("Tried to get Audio file tagged **"+id+"**");
 			return new Audio();
 		}
 	}
-	
-	this.setTime = function(id, value = 0){
+
+	this.setTime = function (id, value = 0) {
 		this.bank[id].currentTime = value;
 	}
-	
-	this.access = function() {
+
+	this.access = function () {
 		this.initialize();
 	};
-	
-	this.getLoadstate = function(){
-		return (this.loadedSounds/this.addedSounds)*100;
+
+	this.getLoadstate = function () {
+		return (this.loadedSounds / this.addedSounds) * 100;
 	}
-	
-	this.updateLoadinfo = function(){
+
+	this.updateLoadinfo = function () {
 		++this.loadedSounds
 		if (this.loadedSounds == this.addedSounds && this.loadState == false) {
-						this.loadState = true;
-						this.onInit();
-				    //console.l555og("All ssounds have been initialized");
-						this.access = function() {};
-					} else {
-						// console.log(this.loadedSounds)
-					}
-	}
-	
-	this.createSoundObject = function(){
-		let soundObject = {
-			/* audioFile: audioFile
-			volume: volume */
+			this.initState = true
+			this.loadState = true;
+			this.onInit();
+			//console.log("All ssounds have been initialized");
+			this.access = function () { };
+		} else {
+			// console.log(this.loadedSounds)
 		}
 	}
-	
-	this.add = function(id, src, volume = 1) {
+
+	this.createSoundObject = function () {
+		let soundObject = {
+			/* audioFile: audioFile,
+			volume: volume,
+			pitch: 1,
+			speed: 1, */
+		}
+	}
+
+	this.add = function (id, src, volume = 1) {
+		if (!this.active) return;
 		// let aud = document.createElement("audio");
 		let aud = new Audio()
-		aud.src = src;
+		aud.src = audioManager.fileSrcHeader + src;
 		aud.volume = volume;
 		aud.psuedoVolume = volume
 		aud.id = id;
@@ -1240,30 +1502,40 @@ function DOMaudioHandler(){
 		this.bank[id] = aud;
 		++this.addedSounds;
 		// document.body.appendChild(aud)
-		aud.oncanplaythrough = function() {
-	    	audioManager.updateLoadinfo()
+		aud.oncanplaythrough = function () {
+			audioManager.updateLoadinfo()
+		}
+		aud.setVolume = function (volume = 1) {
+			aud.psuedoVolume = volume
+			aud.volume = aud.psuedoVolume * audioManager.masterVolume;
+		}
+		aud.getVolume = function (volume = 1) {
+			return aud.psuedoVolume;
 		}
 	}
 
-	this.setMasterVolume = function(volume = 1){
+	this.setMasterVolume = function (volume = 1) {
+		if (!this.active) return;
 		this.masterVolume = volume
-		for(let b in this.bank){
+		for (let b in this.bank) {
 			let sound = audioManager.bank[b];
-			sound.volume *= audioManager.masterVolume;
+			sound.volume = sound.psuedoVolume * audioManager.masterVolume
 		}
 	}
 
-	this.update = function(){
-		for(let s in this.bank){
+	this.update = function () {
+		if (!this.active) return;
+		for (let s in this.bank) {
 
 		}
 	}
 
 }
 
+
 "use strict";
 
-function dPad(x, y, size){
+function dPad(x, y, size) {
 	this.x = x;
 	this.y = y;
 	this.width = size;
@@ -1272,65 +1544,65 @@ function dPad(x, y, size){
 	this.margin = size / 3;
 	this.value = 0;
 	let value = 0;
-	let innerColor= 'grey';
-  
-  let up = this.up = new button(this.x, this.y-this.margin, this.margin, this.margin, '⬆️');
-   this.up.effect = function(){
-  	value = 2;
-  	up.color = 'white';
-  	up.dolater(10, function(){
-  	up.color = innerColor;
-  	});
-  };
-  
-  let down = this.down = new button(this.x, this.y+this.margin, this.margin, this.margin, '⬇️');
-  this.down.effect = function() {
-  	value = 8;
-  	down.color = 'white';
-  	down.dolater(10, function() {
-  	down.color = innerColor;
-  	});
-  };
-  
-  let left = this.left = new button(this.x-this.margin, this.y, this.margin, this.margin, '⬅️')
-  this.left.effect = function() {
-  	value = 4;
-  	left.color = 'white';
-  	left.dolater(10, function() {
-  	left.color = innerColor;
-  	});
-  };
-  
-  let right = this.right = new button(this.x+this.margin, this.y, this.margin, this.margin, '➡️');
-  this.right.effect = function() {
-  	value = 6;
-  	right.color = 'white';
-  	right.dolater(10, function() {
-  	right.color = innerColor;
-  	});
-  };
-  
-  this.buttons = [this.up, this.down, this.left, this.right];
-  
-  this.update = function(tap = null){
-  	value = this.value = 0;
-  	this.margin = this.size/3;
-  	this.up.position(this.x, this.y-this.margin, this.margin, this.margin);
-  	this.down.position(this.x, this.y+this.margin, this.margin, this.margin);
-  	this.left.position(this.x-this.margin, this.y, this.margin, this.margin);
-  	this.right.position(this.x+this.margin, this.y, this.margin, this.margin);
-  	for (let i = 0; i < this.buttons.length; ++i) {
-  		this.buttons[i].fontSize = this.margin;
-  		if(tap != null){
-  		this.buttons[i].listen(tap);
-  		this.value = value;
-  	};
-  };
-  	  return this.value;
-  }
-  
-	this.render = function(){
-		for(let i = 0; i < this.buttons.length; ++i){
+	let innerColor = 'grey';
+
+	let up = this.up = new button(this.x, this.y - this.margin, this.margin, this.margin, '⬆️');
+	this.up.effect = function () {
+		value = 2;
+		up.color = 'white';
+		up.dolater(10, function () {
+			up.color = innerColor;
+		});
+	};
+
+	let down = this.down = new button(this.x, this.y + this.margin, this.margin, this.margin, '⬇️');
+	this.down.effect = function () {
+		value = 8;
+		down.color = 'white';
+		down.dolater(10, function () {
+			down.color = innerColor;
+		});
+	};
+
+	let left = this.left = new button(this.x - this.margin, this.y, this.margin, this.margin, '⬅️')
+	this.left.effect = function () {
+		value = 4;
+		left.color = 'white';
+		left.dolater(10, function () {
+			left.color = innerColor;
+		});
+	};
+
+	let right = this.right = new button(this.x + this.margin, this.y, this.margin, this.margin, '➡️');
+	this.right.effect = function () {
+		value = 6;
+		right.color = 'white';
+		right.dolater(10, function () {
+			right.color = innerColor;
+		});
+	};
+
+	this.buttons = [this.up, this.down, this.left, this.right];
+
+	this.update = function (tap = null) {
+		value = this.value = 0;
+		this.margin = this.size / 3;
+		this.up.position(this.x, this.y - this.margin, this.margin, this.margin);
+		this.down.position(this.x, this.y + this.margin, this.margin, this.margin);
+		this.left.position(this.x - this.margin, this.y, this.margin, this.margin);
+		this.right.position(this.x + this.margin, this.y, this.margin, this.margin);
+		for (let i = 0; i < this.buttons.length; ++i) {
+			this.buttons[i].fontSize = this.margin;
+			if (tap != null) {
+				this.buttons[i].listen(tap);
+				this.value = value;
+			};
+		};
+		return this.value;
+	}
+
+	this.render = function () {
+		for (let i = 0; i < this.buttons.length; ++i) {
 			glow(0);
 			this.buttons[i].drawingStyle = 2;
 			this.buttons[i].render();
@@ -1339,7 +1611,7 @@ function dPad(x, y, size){
 }
 
 
-function joystick(x, y, radius, sizeRatio = 3, knobColor = 'white'){
+function joystick(x, y, radius, sizeRatio = 3, knobColor = 'white') {
 	this.x = x;
 	this.y = y;
 	this.center = new Point2D(this.x, this.y);
@@ -1348,35 +1620,35 @@ function joystick(x, y, radius, sizeRatio = 3, knobColor = 'white'){
 	this.extension = 3;
 	this.holding = false;
 	this.alpha = 0.6;
-  this.color = 'white';
-  this.value = [0, 0];
-  this.mode = 'idle';
-  this.lineWdith = this.radius/10;
+	this.color = 'white';
+	this.value = [0, 0];
+	this.mode = 'idle';
+	this.lineWdith = this.radius / 10;
 	this.knob = {
-		x : this.x,
-		y : this.y,
-		center : this.center,
-		extension : this.extension,
-		radius : this.radius/2,
-		color : knobColor,
-		alpha : 1,
-		state : 'idle',
-		update : function(point, holding = false){
-			if(holding && point.x!=null){
+		x: this.x,
+		y: this.y,
+		center: this.center,
+		extension: this.extension,
+		radius: this.radius / 2,
+		color: knobColor,
+		alpha: 1,
+		state: 'idle',
+		update: function (point, holding = false) {
+			if (holding && point.x != null) {
 				place(this, point);
 				this.x = limit(point.x, this.center.x - this.radius * this.extension, this.center.x + this.radius * this.extension);
 				this.y = limit(this.y, this.center.y - this.radius * this.extension, this.center.y + this.radius * this.extension);
 			} else {
-				
+
 			}
 		},
-		render : function(){
+		render: function () {
 			circle(this.x, this.y, this.radius, this.color);
 		},
 	};
-	
-	this.checkHolding = function(point){
-		if(dist(point, this) < this.radius*this.extension){
+
+	this.checkHolding = function (point) {
+		if (dist(point, this) < this.radius * this.extension) {
 			this.holding = true
 			this.mode = 'active'
 		} else {
@@ -1385,53 +1657,52 @@ function joystick(x, y, radius, sizeRatio = 3, knobColor = 'white'){
 		}
 		return this.holding;
 	}
-	
-	this.callback = function(){};
-	
-	this.update = function(point = null, mode = 'idle'){
+
+	this.callback = function () { };
+
+	this.update = function (point = null, mode = 'idle') {
 		place(this.center, this)
-		this.knob.radius = this.radius/2
-		if(point != null && this.checkHolding(point)){
-		if(mode == 'idle'){
-		 this.mdde = 'idle'
-		// this.knob.update(this.center, true)
-		}else if(mode == 'start'){
-			this.mdde = 'active'
-		this.checkHolding(point);
-		} else if (mode == 'move'){
-			this.mdde = 'active'
-			this.knob.update(point, true);
-		} else if (mode == 'end'){
-			this.mode = 'idle';
-			place(this.knob, this);
-		// this.knob.update(point, false)
-		}
-		this.value[0] = (this.knob.x - this.x) / (this.radius/2*this.extension)
-		this.value[1] = (this.knob.y - this.y) / (this.radius/2*this.extension)
+		this.knob.radius = this.radius / 2
+		if (point != null && this.checkHolding(point)) {
+			if (mode == 'idle') {
+				this.mdde = 'idle'
+				// this.knob.update(this.center, true)
+			} else if (mode == 'start') {
+				this.mdde = 'active'
+				this.checkHolding(point);
+			} else if (mode == 'move') {
+				this.mdde = 'active'
+				this.knob.update(point, true);
+			} else if (mode == 'end') {
+				this.mode = 'idle';
+				place(this.knob, this);
+				// this.knob.update(point, false)
+			}
+			this.value[0] = (this.knob.x - this.x) / (this.radius / 2 * this.extension)
+			this.value[1] = (this.knob.y - this.y) / (this.radius / 2 * this.extension)
 		} else {
-		if(this.mode == 'idle'){
-		place(this.knob, this);
-		this.value[0] = this.value[1] = 0
-		}
+			if (this.mode == 'idle') {
+				place(this.knob, this);
+				this.value[0] = this.value[1] = 0
+			}
 		}
 		this.callback();
 	}
-	
-	this.render = function(){
-	 let context = cc
-	 context.save()
-	 context.globalAlpha = this.alpha;
-	 stCircle(this.x, this.y, this.radius, this.color, 10) 
-	 context.globalAlpha = this.knob.alpha
-	 if(this.mode == 'active'){
-	 stCircle(this.knob.x, this.knob.y, this.knob.radius, this.lineWidth, 5)
-	 circle(this.x, this.y, this.radius*this.extension, 'rgba(255,255,255,0.2)')
-	 }
-	 this.knob.render()
-	 context.restore();
+
+	this.render = function () {
+		let context = cc
+		context.save()
+		context.globalAlpha = this.alpha;
+		stCircle(this.x, this.y, this.radius, this.color, 10)
+		context.globalAlpha = this.knob.alpha
+		if (this.mode == 'active') {
+			stCircle(this.knob.x, this.knob.y, this.knob.radius, this.lineWidth, 5)
+			circle(this.x, this.y, this.radius * this.extension, 'rgba(255,255,255,0.2)')
+		}
+		this.knob.render()
+		context.restore();
 	}
 };
-
 
 
 
@@ -1441,94 +1712,94 @@ var CamPointer = new Point2D(0, 0)
 // const eventBasedOnDevice = navigator.userAgent.match(/ipod|ipad|iphone/i) ? 'touchstart' : 'click';
 
 
-function pointStartEvent(pointer, pointerType){};
-function pointMoveEvent(pointer, pointerType){};
-function pointEndEvent(pointer, pointerType){};
+function pointStartEvent(pointer, pointerType) { };
+function pointMoveEvent(pointer, pointerType) { };
+function pointEndEvent(pointer, pointerType) { };
 /* function clickEvent(){}
-get('Caldro Canvas').addEventListener('click', function event(event) {
+get('Caldro_Canvas').addEventListener('click', function event(event) {
 		pointer.x = event.clientX
 		pointer.y = event.clientY
 		clickEvent()
 }, false)
  */
-function touchstartEvent() {}
-get("Caldro Canvas").addEventListener('touchstart', function(event) {
-	if(Caldro.events.handleTouchEvents){
-	for(let touch = 0; touch < event.touches.length; ++touch){
-		pointer.x = event.touches[touch].clientX
-	  pointer.y = event.touches[touch].clientY
-	  Caldro.info.currentCamera.updatePointer(pointer)
-		  touchstartEvent(pointer);
-		  pointStartEvent(pointer, "touch")
-	  }
+function touchstartEvent() { }
+get("Caldro_Canvas").addEventListener('touchstart', function (event) {
+	if (Caldro.events.handleTouchEvents) {
+		for (let touch = 0; touch < event.touches.length; ++touch) {
+			pointer.x = event.touches[touch].clientX
+			pointer.y = event.touches[touch].clientY
+			Caldro.info.currentCamera.updatePointer(pointer)
+			touchstartEvent(pointer);
+			pointStartEvent(pointer, "touch")
+		}
 	}
 }, false)
 
 
-function touchmoveEvent(){}
-get('Caldro Canvas').addEventListener('touchmove', function(event){
-	if(Caldro.events.handleTouchEvents){
-	for(let touch = 0; touch < event.touches.length; ++touch){
-  	pointer.x = event.touches[touch].pageX
-  	pointer.y = event.touches[touch].pageY
-    Caldro.info.currentCamera.updatePointer(pointer)
-		touchmoveEvent(pointer);
-		pointMoveEvent(pointer, "touch")
-	}
+function touchmoveEvent() { }
+get('Caldro_Canvas').addEventListener('touchmove', function (event) {
+	if (Caldro.events.handleTouchEvents) {
+		for (let touch = 0; touch < event.touches.length; ++touch) {
+			pointer.x = event.touches[touch].pageX
+			pointer.y = event.touches[touch].pageY
+			Caldro.info.currentCamera.updatePointer(pointer)
+			touchmoveEvent(pointer);
+			pointMoveEvent(pointer, "touch")
+		}
 	}
 })
 
-function touchendEvent() {}
-get('Caldro Canvas').addEventListener('touchend', function(event) {
-	if(Caldro.events.handleTouchEvents){
-	for(let touch = 0; touch < event.changedTouches.length; ++touch){
-		pointer.x = event.changedTouches[touch].pageX
-		pointer.y = event.changedTouches[touch].pageY
-		Caldro.info.currentCamera.updatePointer(pointer)
+function touchendEvent() { }
+get('Caldro_Canvas').addEventListener('touchend', function (event) {
+	if (Caldro.events.handleTouchEvents) {
+		for (let touch = 0; touch < event.changedTouches.length; ++touch) {
+			pointer.x = event.changedTouches[touch].pageX
+			pointer.y = event.changedTouches[touch].pageY
+			Caldro.info.currentCamera.updatePointer(pointer)
 			touchendEvent(pointer);
 			pointEndEvent(pointer, "touch")
 		}
 	}
 })
 
-function mousedownEvent(){};
-get("Caldro Canvas").addEventListener("mousedown",function(e) {
-	if(Caldro.events.handleMuuseEvents){
-	pointer.x = e.clientX;
-	pointer.y = e.clientY;
-	Caldro.info.currentCamera.updatePointer(pointer);
+function mousedownEvent() { };
+get("Caldro_Canvas").addEventListener("mousedown", function (e) {
+	if (Caldro.events.handleMouseEvents) {
+		pointer.x = e.clientX;
+		pointer.y = e.clientY;
+		Caldro.info.currentCamera.updatePointer(pointer);
 		mousedownEvent();
 		pointStartEvent(pointer, "mouse");
 	}
 })
 
-function mousemoveEvent(){};
-get("Caldro Canvas").addEventListener("mousemove",function(e) {
-	if(Caldro.events.handleMuuseEvents){
-	pointer.x = e.clientX;
-	pointer.y = e.clientY;
-	Caldro.info.currentCamera.updatePointer(pointer)
+function mousemoveEvent() { };
+get("Caldro_Canvas").addEventListener("mousemove", function (e) {
+	if (Caldro.events.handleMouseEvents) {
+		pointer.x = e.clientX;
+		pointer.y = e.clientY;
+		Caldro.info.currentCamera.updatePointer(pointer)
 		mousemoveEvent();
 		pointMoveEvent(pointer, "mouse");
-    }
+	}
 })
 
-function mouseupEvent(){};
-get("Caldro Canvas").addEventListener("mouseup",function(e) {
-	if(Caldro.events.handleMuuseEvents){
-	pointer.x = e.clientX;
-	pointer.y = e.clientY;
-	Caldro.info.currentCamera.updatePointer(pointer)
+function mouseupEvent() { };
+get("Caldro_Canvas").addEventListener("mouseup", function (e) {
+	if (Caldro.events.handleMouseEvents) {
+		pointer.x = e.clientX;
+		pointer.y = e.clientY;
+		Caldro.info.currentCamera.updatePointer(pointer)
 		pointEndEvent(pointer, "mouse");
 		mouseupEvent();
 	}
 })
 
-function mousescrollUp(){}
-function mousescrollDown(){}
-document.addEventListener("mousewheel", function(event){
-	if(Caldro.events.handleToudhEvents){
-		if(event.deltaY < 0){
+function mousescrollUp() { }
+function mousescrollDown() { }
+document.addEventListener("mousewheel", function (event) {
+	if (Caldro.events.handleToudhEvents) {
+		if (event.deltaY < 0) {
 			mousescrollUp()
 		} else {
 			mousescrollDown();
@@ -1536,85 +1807,84 @@ document.addEventListener("mousewheel", function(event){
 	}
 })
 
-function keyPressHandler(){}
-document.addEventListener("keydown", function(event) {
-	// console.log(event)
+function keyPressHandler() { }
+document.addEventListener("keydown", function (event) {
 	Caldro.info.currentKeyStateHandler.activateKeyState(event);
 	keyPressHandler(event.which)
 })
 
-function keyEndHandler(){}
-document.addEventListener("keyup", function(event) {
+function keyEndHandler() { }
+document.addEventListener("keyup", function (event) {
 	Caldro.info.currentKeyStateHandler.deactivateKeyState(event);
 	keyEndHandler(event.which)
 })
 
-function keyStateHandler(){
+function keyStateHandler() {
 	this.keys = [];
 	this.active = true;
 	this.strictMatch = true;
 	this.strictCaps = true;
-	this.addKey = function(keyNumber, keyName, effect = function(){}, onclick = function(){}){
-		if(typeof keyName == "object"){
-			for(let n = 0; n < keyName.length; ++n){
-				this.keys.push( new this.keyListener(keyNumber, keyName[n], effect, onclick))
+	this.addKey = function (keyNumber, keyName, effect = function () { }, onclick = function () { }) {
+		if (typeof keyName == "object") {
+			for (let n = 0; n < keyName.length; ++n) {
+				this.keys.push(new this.keyListener(keyNumber, keyName[n], effect, onclick))
 			}
 		} else {
-			this.keys.push( new this.keyListener(keyNumber, keyName, effect, onclick))
+			this.keys.push(new this.keyListener(keyNumber, keyName, effect, onclick))
 		}
 	}
 	this.bind = this.addKey;
-	this.getKey = function(keyInfo){
+	this.getKey = function (keyInfo) {
 		let key = undefined;
-		if(typeof keyInfo == "number"){
-			for(let k = 0; k < this.keys.length; ++k){
-				if(this.keys[k].keyNumber == keyInfo){
+		if (typeof keyInfo == "number") {
+			for (let k = 0; k < this.keys.length; ++k) {
+				if (this.keys[k].keyNumber == keyInfo) {
 					key = this.keys[k];
 					break
 				}
 			}
-		} else if(typeof keyInfo == "string"){
-			for(let k = 0; k < this.keys.length; ++k){
+		} else if (typeof keyInfo == "string") {
+			for (let k = 0; k < this.keys.length; ++k) {
 				let condition = false;
 				let keyToLow = this.keys[k].keyName.toLowerCase()
 				let keyInfToLow = keyInfo.toLowerCase();
-				if(this.strictMatch){
-					if(this.strictCaps){
+				if (this.strictMatch) {
+					if (this.strictCaps) {
 						condition = this.keys[k].keyName == keyInfo
 					} else {
 						condition = keyToLow == keyInfToLow;
 					}
 				} else {
-					if(this.strictCaps){
+					if (this.strictCaps) {
 						condition = this.keys[k].keyName == keyInfo
 					} else {
 						condition = keyToLow.includes(keyInfToLow) || keyInfToLow.includes(keyToLow);
 					}
 				}
-				if(condition){
+				if (condition) {
 					key = this.keys[k];
 					break;
 				}
 			}
-		} else if(typeof keyInfo == "object"){
-			for(let k = 0; k < this.keys.length; ++k){
+		} else if (typeof keyInfo == "object") {
+			for (let k = 0; k < this.keys.length; ++k) {
 				let condition = false;
 				let keyToLow = this.keys[k].keyName.toLowerCase()
 				let keyInfToLow = keyInfo.key.toLowerCase();
-				if(this.strictMatch){
-					if(this.strictCaps){
+				if (this.strictMatch) {
+					if (this.strictCaps) {
 						condition = this.keys[k].keyName == keyInfo
 					} else {
 						condition = keyToLow == keyInfToLow;
 					}
 				} else {
-					if(this.strictCaps){
+					if (this.strictCaps) {
 						condition = this.keys[k].keyName == keyInfo
 					} else {
 						condition = keyToLow.includes(keyInfToLow) || keyInfToLow.includes(keyToLow);
 					}
 				}
-				if(condition || this.keys[k].keyNumber == keyInfo.which ){
+				if (condition || this.keys[k].keyNumber == keyInfo.which) {
 					key = this.keys[k];
 					break
 				}
@@ -1622,7 +1892,7 @@ function keyStateHandler(){
 		}
 		return key;
 	}
-	this.keyListener = function(KeyNumber, keyName, effect = function(){}, onclick = function(){}){
+	this.keyListener = function (KeyNumber, keyName, effect = function () { }, onclick = function () { }) {
 		this.keyNumber = KeyNumber;
 		this.keyName = keyName;
 		this.active = true;
@@ -1631,12 +1901,12 @@ function keyStateHandler(){
 		this.effect = effect;
 		this.onclick = onclick;
 	}
-	this.updateKeys = function(){
-		if(this.active && Caldro.events.handleKeyboardEvents){
-			for(let k = 0; k < this.keys.length; ++k){
+	this.updateKeys = function () {
+		if (this.active && Caldro.events.handleKeyboardEvents) {
+			for (let k = 0; k < this.keys.length; ++k) {
 				let key = this.keys[k];
-				if(key.active && key.beingPressed){
-					if(key.executeClick){
+				if (key.active && key.beingPressed) {
+					if (key.executeClick) {
 						key.onclick();
 						key.executeClick = false;
 					}
@@ -1645,15 +1915,15 @@ function keyStateHandler(){
 			}
 		}
 	}
-	this.activateKeyState = function(KeyInfo = 0){
+	this.activateKeyState = function (KeyInfo = 0) {
 		let key = this.getKey(KeyInfo);
-		if(key != undefined){
+		if (key != undefined) {
 			key.beingPressed = true;
 		}
 	}
-	this.deactivateKeyState = function(KeyInfo = 0){
+	this.deactivateKeyState = function (KeyInfo = 0) {
 		let key = this.getKey(KeyInfo);
-		if(key!=undefined){
+		if (key != undefined) {
 			key.beingPressed = false;
 			key.executeClick = true;
 		}
@@ -1664,48 +1934,11 @@ var keyAtlas = [
 
 ]
 
-function getKeyName(keyNumber){
+function getKeyName(keyNumber) {
 
 }
 
-let euler = Math.E;
 
-class perceptron{
-    constructor(){
-
-    }
-}
-
-class neuralNetwork{
-    constructor(){
-
-    }
-}
-
-function createData(batchSize, amountOfinfo){
-    let batch = new Array();
-    for(let b = 0; b < batchSize; ++b){
-        let infoSet = new Array();
-        for(let a = 0; a < amountOfinfo; ++a){
-            infoSet.push(0)
-        }
-        batch.push(infoSet)
-    }
-}
-
-
-
-function linspace(start, end, amount = 10){
-    let array = new Array();
-    if(amount < 2){
-        return n === 1 ? [start] : [];
-    }
-    --amount;
-    for(let i = amount; i >= 0; --i){
-        array[i] = (i * end + (amount - i) * start) / amount;
-    }
-    return array;
-}
 
 "use strict";
 
@@ -1724,6 +1957,7 @@ class layout{
 		this.y = y;
 		this.width = width;
 		this.height = height
+		this.children = new Array(); 
 	}
 	transform(x, y, width, height){
 		this.x = x * c.vw;
@@ -1980,6 +2214,32 @@ class revolver {
 	}
 }
 
+class ray{
+    constructor(x = c.xc, y = c.yc, angle = 90, length = 1000, color = "blue"){
+        this.x = x;
+        this.y = y,
+        this.endPoint = new Point2D(this.x, this.y);
+        this.angle = angle;
+        this.length = length
+        this.color = color,
+        this.lineWidth = 5;
+        this.data = new Array()
+    }
+    callback(){};
+    update(){
+        let rad = degToRad(this.angle);
+        this.endPoint.x = this.x + this.length*Math.sin(rad);
+        this.endPoint.y = this.y + this.length*-Math.cos(rad);
+        this.callback();
+    }
+    render(){
+        line(this.x, this.y, this.endPoint.x, this.endPoint.y, this.color, this.lineWidth)
+    }
+	/* castTo(pointX, pointY){
+		this.endPoint.x = pointX
+	} */
+}
+
 //Creates an area on the screen that will be checked for collision with an entity
 class trigger {
 	constructor(x = 0, y = 0, w = 0, h = 0, target = null) {
@@ -2150,11 +2410,7 @@ class button {
 		this.selected = false;
 		this.fontSize = 30;
 		this.drawingStyle = 1;
-		this.values = [];
-		this.clicked = function (point) {
-			return point.x >= this.x - this.width / 2 && point.x <= this.x + this.width / 2 && point.y >= this.y - this.height / 2 && point.y <= this.y + this.height / 2;
-		};
-
+		this.data = [];
 		this.setFontSize = function () {
 			//return font((cc.measureText(this.text).width)*(1/this.width)
 			//cc.lineHeight = this.height*0.7
@@ -2177,24 +2433,23 @@ class button {
 
 		this.render = function () {
 			if (this.drawingStyle == 1) {
-				stRect(this.x, this.y, this.width, this.height, this.strokeColor, this.lineWidth);
-				CurvedRect(this.x, this.y, this.width, this.height, this.color);
-				StCurvedRect(this.x, this.y, this.width, this.height, this.strokeColor, 20, this.lineWidth);
+				Rect(this.x, this.y, this.width, this.height, this.color);
 				txt(this.text, this.x, this.y, font(this.fontSize), this.textColor);
 				if (this.active == false) {
-					CurvedRect(this.x, this.y, this.width, this.height, 'rgba(50,50,50,0.5)');
-					StCurvedRect(this.x, this.y, this.width, this.height, 'rgba(50,50,50,0.5)', 20, this.lineWidth);
+					alpha(0.3)
+					Rect(this.x, this.y, this.width, this.height, "grey");
+					alpha(0.5)
 				}
 			} else if (this.drawingStyle == 2) {
 				stRect(this.x, this.y, this.width, this.height, this.strokeColor, this.lineWidth);
 				CurvedRect(this.x, this.y, this.width, this.height, this.color);
-				//StCurvedRect(this.x, this.y, this.width, this.height, this.strokeColor, 20, this.lineWidth)
 				txt(this.text, this.x, this.y, font(this.fontSize), this.textColor);
 				if (this.active == false) {
 					CurvedRect(this.x, this.y, this.width, this.height, 'rgba(50,50,50,0.5)');
-					StCurvedRect(this.x, this.y, this.width, this.height, 'rgba(50,50,50,0.5)', 20, this.lineWidth);
+					stCurvedRect(this.x, this.y, this.width, this.height, 'rgba(50,50,50,0.5)', 20, this.lineWidth);
 				}
 			} else if (this.drawingStyle == 3) {
+				this.drawing();
 			}
 
 		};
@@ -2203,9 +2458,9 @@ class button {
 			setTimeout(func, delay);
 		};
 
-		this.listen = function (pointeer) {
+		this.listen = function (point) {
 			if (this.active == true) {
-				if (this.clicked(pointer) == true) {
+				if (pointIsIn(point, this)) {
 					this.onclick();
 					this.selected = true;
 					++this.clicks;
@@ -2236,11 +2491,12 @@ class button {
 			this.visible = this.active = value;
 		};
 
-		this.position = function (x = this.x, y = this.y, width = this.width, height = this.height, color = this.color) {
+		this.position = function (x = this.x, y = this.y, width = this.width, height = this.height, fontSize = this.fontSize, color = this.color) {
 			this.x = x;
 			this.y = y;
 			this.width = width;
 			this.height = height;
+			this.fontSize = fontSize
 			this.color = color;
 		};
 
@@ -2258,6 +2514,7 @@ class particle{
 		this.xv = xv;
 		this.yv = yv;
 		this.outsideForce = [0, 0];
+		this.friction = [0, 0]
 		this.colors = colors;
 		this.alpha = 1;
 		this.colorIndex = 0;
@@ -2269,7 +2526,9 @@ class particle{
 		this.type = type;
 		this.size = size;
 		this.lineWidth = 4;
-		this.width = this.height = this.radius = this.length = this.size;
+		this.width = this.height = this.length = this.size;
+		this.radius = size / 2;
+		this.data = new Array();
 		this.originalState = {
 			x: this.x,
 			y: this.y,
@@ -2317,8 +2576,9 @@ class particle{
 			this.color = this.colors;
 		}
 		if(this.particleSystem!=null){
-			this.xv += this.outsideForce[0] * this.particleSystem.scaleFactor;
-			this.yv += this.outsideForce[1] * this.particleSystem.scaleFactor;
+			addFriction(this, this.friction, deltatime)
+			this.xv += this.outsideForce[0] 
+			this.yv += this.outsideForce[1]
 			this.x += (this.xv * deltatime) * this.particleSystem.scaleFactor;
 			this.y += (this.yv * deltatime) * this.particleSystem.scaleFactor;
 		} else {
@@ -2356,7 +2616,7 @@ class particle{
 			circle(this.x, this.y, this.radius, this.color);
 		} else if (this.type.includes('line')) {
 			cc.lineWidth = this.lineWidth;
-			line(this.x, this.y, this.x + this.xv * this.length, this.y + this.yv * this.length, this.color, 6);
+			line(this.x, this.y, this.x + this.xv * this.length, this.y + this.yv * this.length, this.color, 2);
 		} else {
 			Rect(this.x, this.y, 50, 50, 'darkblue');
 		}
@@ -2375,6 +2635,7 @@ class particleSystem {
 		this.destroyedParticles = 0;
 		this.speedMultiplier = 1;
 		this.shouldCreateParticles = true
+		this.precisePlacment = true
 		this.active = true;
 		// let PSpointer = this;
 	}	
@@ -2390,7 +2651,7 @@ class particleSystem {
 		};
 		
 
-		particleSource(x, y, width, height, xv = [0, 0], yv = [0, 0], force = [0, 0], size = 20, colors = ['white'], amount = 1, timer = null, type = 'box', glow = 0, decayStyle = 'shrink') {
+		particleSource(x, y, width, height, xv = [0, 0], yv = [0, 0], forces = [[0, 0], [0, 0]], size = 20, colors = ['white'], amount = 1, timer = null, type = 'box', glow = 0, decayStyle = 'shrink') {
 			if(this.shouldCreateParticles && this.active){
 				// let YVs = [];
 			// let XVx = [];
@@ -2410,27 +2671,44 @@ class particleSystem {
 				}
 				width*=this.scaleFactor;
 				height*=this.scaleFactor;
-				let px = gen(x - width / 2, x + width / 2, '');
-				let py = gen(y - height / 2, y + height / 2, '');
+				let px = gen(x - width / 2, x + width / 2, this.precisePlacment);
+				let py = gen(y - height / 2, y + height / 2, this.precisePlacment);
 				let particle = this.createParticle(px, py, Pxv, Pyv, size, colors, timer, type, decayStyle);
 				particle.glow = glow;
-				particle.outsideForce = force;
+				if(typeof forces[0] == "number"){
+					particle.friction = forces;
+ 				} else if(typeof forces[0] == "object"){
+					 particle.friction = forces[0]
+					 if(forces[1]){
+						 particle.outsideForce = forces[1]
+					 }
+				 }
+
 				this.particles_Array.push(particle);
 				// particlesArray.push(particle);
 			}
-			xv = yv = force = colors = null;
+			// xv = yv = force = colors = null;
 			// return particlesArray;
 			}
 		};
 
 		updateAndRenderAll (deltatime = 1, update = true, render = true) {
 			if(this.active){
-				for (let pv = 0; pv < this.particles_Array.length; ++pv) {
+				// for (let pv = 0; pv < this.particles_Array.length; ++pv) {
+				for (let pv = this.particles_Array.length-1; pv > -1; --pv) {
 					let particle = this.particles_Array[pv];
+					/* if(particle.data["finished"]){
+						
+					} */
 					if (update) {
 						particle.update(deltatime);
+						if(particle.x == NaN || particle.y == NaN || particle.xv == NaN || particle.yv == NaN){
+							console.error("A particle from a particle System has a particle that has a NaN value")
+							console.log(particle)
+						}
 					}
 					if (particle.timer <= 0 || particle.width == 0) {
+						// particle.data["finished"] = true
 						particle.onDestroy();
 						delete this.particles_Array[pv];
 						this.particles_Array.splice(pv, 1);
@@ -2462,6 +2740,12 @@ class camera {
 		this.y = 0;
 		this.width = c.w;
 		this.height = c.h;
+		this.inWorldBounds = {
+			x: this.x,
+			y: this.y, 
+			width: this.width, 
+			height: this.height,
+		}
 		this.zoom = 1;
 		this.zoomSpeed = 0.05;
 		this.zoomRatio = 446;
@@ -2557,102 +2841,194 @@ class camera {
 	}
 }
 
+class cameraManager{
+	constructor(){
+		this.cameras = new Array()
+		this.ICM = new ImageCanvasManager();
+	}
+}
+
+
 var CaldroCam = new camera();
 var Ps = new particleSystem();
 var GameKeys = new keyStateHandler();
 var Caldro = {
-  showActive: true,
-  time: {
-    deltatime: 0,
-    elapsedTime: 0,
-    currentFrame: 0,
-    previousFrame: 0,
-    _lastFrame: 0,
-    framesPerSecond: 0,
-    update: function() {
-      let ct = Caldro.time
-      ct.currentFrame = window.performance.now() / 1000;
-      ct.deltatime = ct.currentFrame - ct._lastFrame
-      ct.previousFrame = ct._lastFrame;
-      ct._lastFrame = ct.currentFrame
+	showActive : true,
+	time : {
+		deltatime: 0,
+		elapsedTime: 0,
+		currentFrame: 0,
+		previousFrame: 0,
+		_lastFrame: 0,
+		framesPerSecond: 0,
+		lastRecordedFramesPerSecond: new Array(),
+		maxFramesPerSecond: 100,
+		avergeFrameRateRecordingSpan: 10,
+		cycles: 0,
+		update: function(){
+			let ct = Caldro.time
+			++ct.cycles;
+			ct.currentFrame = window.performance.now() / 1000;
+			if(ct.currentFrame - ct._lastFrame < (1/ct.maxFramesPerSecond)){
+				ct.deltatime = 0
+				return;
+			}
+			ct.deltatime = ct.currentFrame - ct._lastFrame //+ ((ct.currentFrame - ct._lastFrame) - (1/ct.maxFramesPerSecond))
+			ct.previousFrame = ct._lastFrame;
+			ct._lastFrame = ct.currentFrame
+			
+			ct.elapsedTime += ct.deltatime;
+			ct.framesPerSecond = 1/ct.deltatime;
+			ct.lastRecordedFramesPerSecond.push(ct.framesPerSecond)
+			if(ct.lastRecordedFramesPerSecond.length > ct.avergeFrameRateRecordingSpan){
+				ct.lastRecordedFramesPerSecond.shift();
+			}
+		},
+		getAverageFrameRate: function(){
+			let ct = Caldro.time;
+			if(!ct.lastRecordedFramesPerSecond.length > 0) return 0;
+			return arraySum(ct.lastRecordedFramesPerSecond) / ct.lastRecordedFramesPerSecond.length;
+		}
+	},
+	game : {
+		world: {
+			dimensions: {
+				meters: c.min/10,
+			}
+		},
+	},
 
-      ct.elapsedTime += ct.deltatime;
-      ct.framesPerSecond = 1 / ct.deltatime;
-    },
-  },
-  game: {
-    world: {
-      dimensions: {
-        meters: c.min / 10,
-      }
-    },
-  },
+	display: {
+		aspectRatio: [16, 9],
 
-  display: {
-    aspectRatio: [16, 9],
+	},
 
-  },
+	info : {
+		logIssues: true,
+		debuggingLogs : {
+			audio: true,
+			particleSystem: true,
+			setAll: function(value = true){
+				this.audio = vakue;
+				this.particleSystem = value;
+			}
+		},
+	    isloggingIssues: function(){
+			return this.logIssues
+		},
+		currentCamera : CaldroCam,
+		currentPlayer : null,
+		currentKeyStateHandler: GameKeys,
+		displayText : {
+			text : "Caldro is Active ^_^",
+			color : 'lightgreen'
+		}
+	},
+	
+	renderer: {
+		context: cc,
+		setCurrentContext: function(context){
+			if(getConstructorName(context) == "CanvasRenderingContext2D"){
+				this.context = context
+			}
+		},
+		getCurrentContext: function(){
+			return this.context;
+		},
+	},
 
-  info: {
-    logIssues: false,
-    currentCamera: CaldroCam,
-    currentPlayer: null,
-    currentKeyStateHandler: GameKeys,
-    displayText: {
-      text: "Caldro is Active ^_^",
-      color: 'lightgreen'
-    }
-  },
+	rendedring : {
+		canvas: get("Caldro_Canvas"),
+		contesx: get("Caldro_Canvas").getContext("2d"),
+		plafrom: "CanvasRenderingContext2D",
+		glow: true,
+		textOutlineThickness: 0,
+		textOutlineColor: "black"
+	},
 
-  rendedring: {
-    glow: true,
-  },
+	events : {
+		handleMouseEvents: true,
+		handleTouchEvents: true,
+		handleKeyboardEvents: true,
+	},
 
-  events: {
-    handleMuuseEvents: true,
-    handleTouchEvents: true,
-    handleKeyboardEvents: true,
-  },
+	setCamera: function(CAMERA){
+		this.info.currentCamera = CAMERA
+	},
+	getCamera: function(){
+		return this.info.currentCamera;
+	},
+	
+	setPlayer: function(PLAYER){
+		this.info.currentPlayer = PLAYER;
+	},	
+	
+	setKeyStateHandler: function(KEYSTATEHANDLER){
+		this.info.currentKeyStateHandler = KEYSTATEHANDLER
+	},
 
-  setCamera: function(CAMERA) {
-    this.info.currentCamera = CAMERA
-  },
+	physics: {
 
-  setPlayer: function(PLAYER) {
-    this.info.currentPlayer = PLAYER;
-  },
+		entities: {
+			blocks: new Array(),
+			triggers: new Array(),
+			bodies: new Array(),
+			autoUpdate: function(){
 
-  setKeyStateHandler: function(KEYSTATEHANDLER) {
-    this.info.currentKeyStateHandler = KEYSTATEHANDLER
-  },
+			},
+		},
+		
+	},
 
-  physics: {
-
-    entities: {
-      blocks: new Array(),
-      triggers: new Array(),
-      bodies: new Array(),
-      autoUpdate: function() {
-
-      },
-    },
-
-  },
-
-  show: function() {
-    if (this.showActive) {
-      let ratio = 1.6;
-      rect(0, 0, c.w, c.h, "black")
-      // let twidth = cc.measureText(Caldro.info.displayText.text).width
-      glow(gen(0, 30), Caldro.info.displayText.color)
-      txt(Caldro.info.displayText.text, c.xc, c.yc, font(c.w * ratio / (Caldro.info.displayText.text.length)), Caldro.info.displayText.color)
-      txt(Caldro.info.displayText.text, c.xc, c.yc, font(c.w * ratio / (Caldro.info.displayText.text.length)), Caldro.info.displayText.color)
-      txt(Caldro.info.displayText.text, c.xc, c.yc, font(c.w * ratio / (Caldro.info.displayText.text.length)), Caldro.info.displayText.color)
-      glow(0)
-    };
-  },
-
+	show : function(){
+		if(this.showActive){
+			let ratio = 1.6;
+			rect(0, 0, c.w, c.h, "black")
+			// let twidth = cc.measureText(Caldro.info.displayText.text).width
+			glow(gen(0, 30), Caldro.info.displayText.color)
+			txt(Caldro.info.displayText.text, c.xc, c.yc, font(c.w * ratio / (Caldro.info.displayText.text.length)), Caldro.info.displayText.color)
+			txt(Caldro.info.displayText.text, c.xc, c.yc, font(c.w * ratio / (Caldro.info.displayText.text.length)), Caldro.info.displayText.color)
+			txt(Caldro.info.displayText.text, c.xc, c.yc, font(c.w * ratio / (Caldro.info.displayText.text.length)), Caldro.info.displayText.color)
+			glow(0)
+		};
+	},
+	
+	startAutoLoop: function(){
+		CALDRO_INFINITE_LOOP()
+	}
 }
 // adjustCanvas(c);
-//console.log(Caldro)
+// console.log(Caldro)
+
+function CaldroLoop(){};
+const CALDRO_INFINITE_LOOP = function(){
+	// Caldro.time.update()
+	CaldroLoop()
+	window.requestAnimationFrame(CALDRO_INFINITE_LOOP);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
