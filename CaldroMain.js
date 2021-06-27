@@ -150,8 +150,8 @@ function approach(number = 10, destination = 0, speed = 0.2, deltatime = Caldro.
 	return { value: number, arrived: arrived };
 } 
 
-function interpolate(percentage = 0.5, minNumber = 0, maxNumber = 1){
-	return minNumber + (maxNumber - minNumber) * percentage;
+function interpolate(percentage = 50, minNumber = 0, maxNumber = 1){
+	return minNumber + (maxNumber - minNumber) *(percentage/100);
 }
 
 function angleBetweenPoints(referencePoint, point2){
@@ -201,37 +201,25 @@ function collided(a, b, type = 'aabb') {
 	}
 }
 
-function pointIsIn(point, object, typeOfObject = "box"){
-	if(typeOfObject.includes("box")){
+function pointIsIn(point, object, typeOfObject = "box") {
+	if (typeOfObject.includes("box")) {
 		return (
-			point.x >= object.x - object.width/2 &&
-			point.x <= object.x + object.width/2 &&
-			point.y >= object.y - object.height/2 &&
-			point.y <= object.y + object.height/2
+			point.x >= object.x - object.width / 2 &&
+			point.x <= object.x + object.width / 2 &&
+			point.y >= object.y - object.height / 2 &&
+			point.y <= object.y + object.height / 2
 		)
 	}
 };
 
 
 function pointIsInCirle(point, circle) {
-    return dist(point, circle) < circle.radius;
+	return dist(point, circle) < circle.radius;
 }
-
-function animateButton(button, change = 0.2, delay = 100) {
-	let Cwidth = button.width * change
-	let Cheight = button.height * change
-	button.width -= Cwidth
-	button.height -= Cheight
-	setTimeout(function () {
-		button.width += Cwidth;
-		button.height += Cheight;
-	}, delay)
-}
-
 
 function contain(who, type = 'box') {
 	if (tyoe = 'box') {
-  
+
 	} else if (type = 'circle') {
 
 	}
@@ -246,36 +234,36 @@ function contain(who, type = 'box') {
 	this.bodyShape = "rectangle"
 } */
 
-function drawBody(body, color = "skyblue"){
+function drawBody(body, color = "skyblue") {
 	Rect(body.x, body.y, body.width, body.height, color)
 }
 
-class PhysicsEngine{
-	constructor(){
+class PhysicsEngine {
+	constructor() {
 		this.bodies = new Array();
 		this.universalForce = [0, 0]
 		this.simulationSpeed = 1;
 	}
-	addBodes(bodies = []){
-		if(typeof bodies == "object"){
-			for(let b = 0; b < bodies.length; ++b){
+	addBodes(bodies = []) {
+		if (typeof bodies == "object") {
+			for (let b = 0; b < bodies.length; ++b) {
 				this.bodies.push(bodies[b])
 			}
 		}
 	}
-	update(deltatime = Caldro.time.deltatime, epochs = 1){
-		if(isWithinRange(epochs, 1, 1000)){
-			console.error("Amount of epochs passed to "+getConstructorName(this)+" is lower than the range[1 -> 1000]. Anount of epochs was "+epochs);
+	update(deltatime = Caldro.time.deltatime, epochs = 1) {
+		if (isWithinRange(epochs, 1, 1000)) {
+			console.error("Amount of epochs passed to " + getConstructorName(this) + " is lower than the range[1 -> 1000]. Anount of epochs was " + epochs);
 		} else {
-			deltatime = (deltatime*this.simulationSpeed)/epochs;
-			for(let e = 0; e < epochs; ++e){
-				for(let b = 0; b < this.bodies.length; ++b){
+			deltatime = (deltatime * this.simulationSpeed) / epochs;
+			for (let e = 0; e < epochs; ++e) {
+				for (let b = 0; b < this.bodies.length; ++b) {
 					this.updateBody(this.bodies[b], deltatime)
 				}
 			}
 		}
 	}
-	body(x, y, size, mass){
+	body(x, y, size, mass) {
 		this.x = x;
 		this.y = y;
 		this.lastX = this.x;
@@ -290,38 +278,51 @@ class PhysicsEngine{
 		this.type = "box"
 	}
 
-	collided(body1, body2){
-		
+	collided(body1, body2) {
+
 	}
 }
 let CaldroPhysics = new PhysicsEngine();
 
-class verletPhysicsEngine{
-	constructor(){
+class verletPhysicsEngine {
+	constructor() {
 		this.bodies = new Array();
 		this.points = new Array();
 		this.constraints = new Array();
+		this.running = true;
 		this.gravity = 9.8;
 		this.friction = 0.999;
 		this.bouce = 0.5;
 	}
-	updatePoints(deltatime = 1){
-		
+	update(deltatime = 1) {
+		let epochs = 16;
+		if (!Editor.active) {
+			this.updatePoints(1);
+		}
+		for (let e = 0; e < epochs; ++e) {
+			this.updateSticks(Caldro.time.deltatime / epochs);
+			// this.constrainPoints(Caldro.time.deltatime / epochs);
+		}
+	}
+	render(){
+		renderSticks();
+		renderPoints();
+		renderForms();
 	}
 }
 
-let engine = new verletPhysicsEngine()
-engine.updatePoints()
+// let engine = new verletPhysicsEngine()
+// engine.updatePoints()
 
 // console.log(Phys)
 //OBJECT MOTIOIN
-function addFriction(who, friction, deltatime){
+function addFriction(who, friction, deltatime) {
 	let fric = [];
 	fric[0] = 1 / (1 + (deltatime * friction[0]));
 	fric[1] = 1 / (1 + (deltatime * friction[1]));
 	who.xv *= fric[0];
 	who.yv *= fric[1];
-	fric =  null;
+	fric = null;
 }
 
 function getBounds(what) {
@@ -356,10 +357,10 @@ function platformize(player, platform) {
 			player.yv = 0
 			if (a.top < b.y || player.y - player.yv - a.hh < b.y) {
 				player.y = b.top - a.hh - margin;
-				if(player.fallilng != undefined){
+				if (player.fallilng != undefined) {
 					player.falling = false;
 				}
-				if(player.jumps != undefined){
+				if (player.jumps != undefined) {
 					player.jumps = 0;
 				}
 			} else if (a.bottom > b.y && player.y - player.yv - a.hh > b.y) {
@@ -380,13 +381,13 @@ function platformize(player, platform) {
 	return player.falling;
 }
 
-function lineToLineCollidsion(point1, point2, point3, point4){
-	let h = dist({s: point1, y: point2}, {x: point3, y: point4})
-	
+function lineToLineCollidsion(point1, point2, point3, point4) {
+	let h = dist({ s: point1, y: point2 }, { x: point3, y: point4 })
+
 }
 
-class polygonPoint2D{
-	constructor(x, y){
+class polygonPoint2D {
+	constructor(x, y) {
 		this.x = x;
 		this.y = y;
 		this.angle = angleBetweenTwoPoints(ORIGIN, this);
@@ -394,8 +395,8 @@ class polygonPoint2D{
 	}
 }
 
-class polygon{
-	constructor(x = 0, y = 0, angle = 0, model = new Array()){
+class polygon {
+	constructor(x = 0, y = 0, angle = 0, model = new Array()) {
 		this.x = x;
 		this.y = y;
 		this.angle = angle;
@@ -513,6 +514,17 @@ ts.chainTasks([
 
 
 //==========//
+function animateButton(button, change = 0.2, delay = 100) {
+	let Cwidth = button.width * change
+	let Cheight = button.height * change
+	button.width -= Cwidth
+	button.height -= Cheight
+	setTimeout(function () {
+		button.width += Cwidth;
+		button.height += Cheight;
+	}, delay)
+}
+
 
 function timeTask(task = nullFunction){
 	if(typeof task != "function") return false;
@@ -666,9 +678,18 @@ class matrix{
 // document.body.appendChild(resourceImage);
 document.body.style.margin = "0px";
 var CaldroCIM = new canvasImageManager()
+
+////////////////////// FUTURE PLANS ////////////////////////////////////////
+// i HAVE TO CONVERT THIS CLASS TO AN ACTUAL MANAGER                      //
+// IT WILLBE MANAGEING MULTIOLE iMAGE CANVAS OBJECTS,                     //
+// NUT SHOULD STILL HAVE ITS CURRENT FUNCTIONS,                           //
+// THERBY ENCAULATING THE MENAGMENT OF THESE IMAGE CANVS OBJECTS          //
+// AS IT IS APPARENT THAT THE CAPACITY OF THE HTML CANVAS IS NOT INFINITE //
+////////////////////////////////////////////////////////////////////////////
 function canvasImageManager(imageCanvas = document.createElement('canvas'))
 {
 	this.canvas = imageCanvas;
+	this.maxWidth = 10000; this.maxHeight = 10000;
 	this.context = this.canvas.getContext("2d");
 	this.backupCanvas = document.createElement('canvas');
 	this.backupContext = this.backupCanvas.getContext("2d");
@@ -830,27 +851,6 @@ function strokeColor(color = "skyblue", context = cc) {
 
 //Simplification of the fillRect method 
 function rect(x = 0, y = 0, w = c.width, h = c.height, color = 'black') {
-/* 	if (Caldro) {
-		if(!Caldro.info){
-			fillColor(color)
-			cc.fillRect(x, y, Math.round(w), Math.round(h));
-			return
-		}
-		let cam = Caldro.info.currentCamera;
-		if (
-			// x <= cam.x + cam.width/2 &&
-			// x + w >= cam.x - cam.width/2 &&
-			// y <= cam.y + cam.height/2 &&
-			// y + h >= cam.y - cam.height/2
-			collided(cam, {
-				x: x+w/2, y:y+w/2, width:w, height:h
-			})
-		) {
-			fillColor(color)
-			cc.fillRect(x, y, Math.round(w), Math.round(h));
-		}
-		return;
-	} */
 	fillColor(color)
 	cc.fillRect(x, y, Math.round(w), Math.round(h));
 }
@@ -1084,6 +1084,12 @@ function alpha(value) {
 }
 
 function Rect(x, y, w, h, fill, angle = 0) {
+	if(Caldro.rendedring.shapeClipping){
+		let cam = Caldro.rendedring.shapeClippingCamera;
+		if(cam.capturing){
+			if(!collided(cam, {x: x, y: y, width: w, height:h})) return;
+		}
+	}
 	cc.save();
 	cc.translate(x, y);
 	cc.rotate(degToRad(angle));
@@ -1725,13 +1731,17 @@ get('Caldro_Canvas').addEventListener('click', function event(event) {
 function touchstartEvent() { }
 get("Caldro_Canvas").addEventListener('touchstart', function (event) {
 	if (Caldro.events.handleTouchEvents) {
-		for (let touch = 0; touch < event.touches.length; ++touch) {
-			pointer.x = event.touches[touch].clientX
-			pointer.y = event.touches[touch].clientY
-			Caldro.info.currentCamera.updatePointer(pointer)
-			touchstartEvent(pointer);
-			pointStartEvent(pointer, "touch")
-		}
+		let touch = event.touches;
+		let touchPoint = new Point2D(
+			event.touches[touch.length - 1].clientX,
+			event.touches[touch.length - 1].clientY
+		)
+		pointer.x = touchPoint.x
+		pointer.y = touchPoint.y
+		Caldro.screen.addPointer(touch.x, touch.y)
+		Caldro.info.currentCamera.updatePointer(pointer)
+		touchstartEvent(pointer);
+		pointStartEvent(pointer, "touch")
 	}
 }, false)
 
@@ -1739,9 +1749,11 @@ get("Caldro_Canvas").addEventListener('touchstart', function (event) {
 function touchmoveEvent() { }
 get('Caldro_Canvas').addEventListener('touchmove', function (event) {
 	if (Caldro.events.handleTouchEvents) {
-		for (let touch = 0; touch < event.touches.length; ++touch) {
-			pointer.x = event.touches[touch].pageX
-			pointer.y = event.touches[touch].pageY
+		for (let touch = 0; touch < event.changedTouches.length; ++touch) {
+			let pointers = Caldro.screen.pointers
+			pointers[touch].x = event.changedTouches[touch].pageX
+			pointers[touch].y = event.changedTouches[touch].pageY
+			place(pointer, { x: event.changedTouches[0].pageX, y: event.changedTouches[0].pageY })
 			Caldro.info.currentCamera.updatePointer(pointer)
 			touchmoveEvent(pointer);
 			pointMoveEvent(pointer, "touch")
@@ -1753,8 +1765,11 @@ function touchendEvent() { }
 get('Caldro_Canvas').addEventListener('touchend', function (event) {
 	if (Caldro.events.handleTouchEvents) {
 		for (let touch = 0; touch < event.changedTouches.length; ++touch) {
-			pointer.x = event.changedTouches[touch].pageX
-			pointer.y = event.changedTouches[touch].pageY
+			let pointers = Caldro.screen.pointers
+			pointers[touch].x = event.changedTouches[touch].pageX
+			pointers[touch].y = event.changedTouches[touch].pageY
+			pointers.splice(pointers.length - 1, 1)
+			place(pointer, { x: event.changedTouches[0].pageX, y: event.changedTouches[0].pageY })
 			Caldro.info.currentCamera.updatePointer(pointer)
 			touchendEvent(pointer);
 			pointEndEvent(pointer, "touch")
@@ -1888,6 +1903,11 @@ function keyStateHandler() {
 					key = this.keys[k];
 					break
 				}
+			}
+		}
+		if (key == undefined) {
+			if (Caldro.info.isloggingIssues()) {
+				console.error("No key was found with the keyinfo '" + keyInfo + "'");
 			}
 		}
 		return key;
@@ -2164,9 +2184,9 @@ class oscilator {
 	}
 }
 
-class osc{
+class oscilation{
 	constructor(value = 0, lowLimit = 0, highLimit = 100, speed = 10){
-		this.value = 0;
+		this.value = value;
 		this.lowLimit = lowLimit;
 		this.highLimit = highLimit;
 		this.speed = speed;
@@ -2350,6 +2370,10 @@ class timer {
 		this.pauseStartTime = 0;
 		this.pausedTime = 0;
 		this.elapsedTime = 0;
+		this.offsetingTIme = 0;
+	}
+	update(){
+
 	}
 	start (){
 		if(!this.paused){
@@ -2382,12 +2406,19 @@ class timer {
 		this.elapsedTime = ((performance.now()/1000) - this.startTime) - this.pausedTime;
 		return this.elapsedTime
 	}
-	getCurrenttTime (){
+	getCurrentTime (){
 		if(this.paused){
 			this.resume();
 		} 
-		this.elapsedTime = ((performance.now()/1000) - this.startTime) - this.pausedTime;
+		this.elapsedTime = ((performance.now()/1000) - this.startTime) - this.pausedTime - this.offsetingTIme;
 		return this.elapsedTime
+	}
+	setTime(timeInSeconds = 0){
+		if(this.paused){
+			this.resume();
+		} 
+		this.offsetingTIme = ((performance.now()/1000) - this.startTime) - this.pausedTime - timeInSeconds;
+		return this.getCurrentTime()
 	}
 }
 
@@ -2747,18 +2778,19 @@ class camera {
 			height: this.height,
 		}
 		this.zoom = 1;
-		this.zoomSpeed = 0.05;
+		this.zoomSpeed = 3;
 		this.zoomRatio = 446;
 		this.adjustedZoom = 1;
 		this.attachment = null;
 		this.attached = false;
+		this.capturing = false;
 		this.actualOffsetX = 0;
 		this.actualOffsetY = 0;
 		this.shakeOffsetX = 0;
 		this.shakeOffsetY = 0;
 		this.angle = 0;
 		this.frame = 0;
-		this.speed = 20;
+		this.speed = 200;
 		this.translationX = this.camtranslationX = 0;
 		this.translationY = this.camtranslationY = 0;
 		this.pointer = new Point2D();
@@ -2795,6 +2827,7 @@ class camera {
 
 		this.update = function () {
 			this.pre_shot();
+			this.capturing = true;
 			this.width = c.w * (1 / this.zoom);
 			this.height = c.h * (1 / this.zoom);
 			if (this.attached == true) {
@@ -2827,6 +2860,7 @@ class camera {
 
 		this.resolve = function () {
 			cc.restore();
+			this.capturing = false
 		};
 
 		this.attach = function (object) {
@@ -2853,7 +2887,6 @@ var CaldroCam = new camera();
 var Ps = new particleSystem();
 var GameKeys = new keyStateHandler();
 var Caldro = {
-	showActive : true,
 	time : {
 		deltatime: 0,
 		elapsedTime: 0,
@@ -2890,6 +2923,7 @@ var Caldro = {
 			return arraySum(ct.lastRecordedFramesPerSecond) / ct.lastRecordedFramesPerSecond.length;
 		}
 	},
+
 	game : {
 		world: {
 			dimensions: {
@@ -2904,7 +2938,7 @@ var Caldro = {
 	},
 
 	info : {
-		logIssues: true,
+		logIssues: false,
 		debuggingLogs : {
 			audio: true,
 			particleSystem: true,
@@ -2941,6 +2975,8 @@ var Caldro = {
 		canvas: get("Caldro_Canvas"),
 		contesx: get("Caldro_Canvas").getContext("2d"),
 		plafrom: "CanvasRenderingContext2D",
+		shapeClipping: false,
+		shapeClippingCamera: null,
 		glow: true,
 		textOutlineThickness: 0,
 		textOutlineColor: "black"
@@ -2952,6 +2988,22 @@ var Caldro = {
 		handleKeyboardEvents: true,
 	},
 
+	screen : {
+		pointers : new Array(),
+		checkForPointerIn: function(area){
+			for(let point of Caldro.screen.pointers){
+				if(pointIsIn(point, area)){
+					return true
+				}
+			}
+			return false;
+		},
+		addPointer: function(x, y){
+			this.pointers.push(new Point2D(x, y))
+		}
+	},
+
+
 	setCamera: function(CAMERA){
 		this.info.currentCamera = CAMERA
 	},
@@ -2959,6 +3011,10 @@ var Caldro = {
 		return this.info.currentCamera;
 	},
 	
+	setShapeClippingCamera: function(CAMERA){
+		this.rendedring.shapeClippingCamera = CAMERA;
+	},
+
 	setPlayer: function(PLAYER){
 		this.info.currentPlayer = PLAYER;
 	},	
@@ -2980,6 +3036,18 @@ var Caldro = {
 		
 	},
 
+	auto: {
+		layout: {
+			updateLayouts: NULLFUNCTION,
+			updateButtons: function(){
+
+			},
+			updateJoysticks: function(){
+
+			},
+		}
+	},
+
 	show : function(){
 		if(this.showActive){
 			let ratio = 1.6;
@@ -2997,6 +3065,9 @@ var Caldro = {
 		CALDRO_INFINITE_LOOP()
 	}
 }
+
+
+
 // adjustCanvas(c);
 // console.log(Caldro)
 
