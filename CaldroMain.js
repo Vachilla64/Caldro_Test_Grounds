@@ -2491,9 +2491,9 @@ class button {
 
 		this.listen = function (point) {
 			if (this.active == true) {
-				if (pointIsIn(point, this)) 
+				if (pointIsIn(point, this)) {
 					this.onclick();
-                                        this.clickEvent();
+					this.clickEvent();
 					this.selected = true;
 					++this.clicks;
 					return true;
@@ -2941,7 +2941,7 @@ var Caldro = {
 
 	info : {
 		logIssues: false,
-                version: '0.1.6",
+    version: "0.1.6",
 		debuggingLogs : {
 			audio: true,
 			particleSystem: true,
