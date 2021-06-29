@@ -2941,6 +2941,7 @@ var Caldro = {
 
 	info : {
 		logIssues: false,
+                version: '0.1.6",
 		debuggingLogs : {
 			audio: true,
 			particleSystem: true,
@@ -3005,6 +3006,7 @@ var Caldro = {
 		}
 	},
 
+        getVersion(){ return this.info.version },
 
 	setCamera: function(CAMERA){
 		this.info.currentCamera = CAMERA
