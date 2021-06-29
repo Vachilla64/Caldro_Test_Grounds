@@ -580,7 +580,7 @@ function closest(who, array) {
 	for (let l = 0; l < array.length; ++l) {
 		if (dist(who, array[l]) < dist(who, closest)) {
 			closest = array[l]
-		}
+		} 
 	}
 		return closest;
 	} else {
@@ -2491,8 +2491,9 @@ class button {
 
 		this.listen = function (point) {
 			if (this.active == true) {
-				if (pointIsIn(point, this)) {
+				if (pointIsIn(point, this)) 
 					this.onclick();
+                                        this.clickEvent();
 					this.selected = true;
 					++this.clicks;
 					return true;
@@ -2509,6 +2510,7 @@ class button {
 		this.callback = function () { };
 		this.drawing = function () { };
 		this.onclick = function() { }; 
+                this.clickEvent = function() { };
 		this.onClickEnd = function(){ };
 
 		this.place = function (pointer) {
