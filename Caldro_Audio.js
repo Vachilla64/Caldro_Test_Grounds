@@ -89,7 +89,7 @@ function DOMaudioManager() {
 	}
 
 	this.play = function (id, cloneNode = false) {
-		if (!this.active) return;
+		if (!this.active || !this.initState) return;
 		if (this.bank[id]) {
 			if (cloneNode) {
 				let sound = this.bank[id].cloneNode(true)
