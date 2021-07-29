@@ -1,3 +1,6 @@
+/**
+ * A simple caldro test
+ */
 "CALDRO VERSION 0.1.7 (Mini Update)"
 "Main updates: screen pointers and controls"
 "sub update: special object 'button' class"
