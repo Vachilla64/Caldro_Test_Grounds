@@ -1,5 +1,5 @@
 /**
- * A simple caldro test
+ * A simple caldro testr
  */
 "CALDRO VERSION 0.1.7 (Mini Update)"
 "Main updates: screen pointers and controls"
