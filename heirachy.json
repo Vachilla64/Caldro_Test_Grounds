@@ -1,0 +1,20 @@
+{
+    "core": [
+        "constants",
+        "functions",
+        "vector",
+        "matrices"
+    ],
+    "network": [
+
+    ],
+    "window": [
+
+    ],
+    "physics": [
+
+    ],
+    "graphics": [
+
+    ]
+}
