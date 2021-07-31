@@ -1,8 +1,148 @@
-const REPOSITORY = "github.com/Vachilla64/Caldro";function implementInterface(target, ...arg) {
 
-};/**
+
+const REPOSITORY = "github.com/Vachilla64/Caldro";const CONTAINERS = [];// errors
+const INVALID_VECTOR = (msg = "Please provide an appropriate vector's type") => new CustomError("NOT_A_VECTOR", msg);const INVALID_SCENE = (msg = "Please provide an appropriate Scene/HTMLElement type") => new CustomError("NOT_A_SCENE", msg);
+
+
+window.requestAnimationFrame = (function() {
+    return window.requestAnimationFrame || 
+    window.webkitRequestAnimationFrame ||
+    window.mozRequestAnimationFrame ||
+    function(callback) {
+        window.setTimeout(callback, 1000/60);
+    }
+})();
+
+
+Object.defineProperties(HTMLElement.prototype, {
+   
+    css: {
+		value: function(styles) {
+			if(!styles instanceof Object) 
+				throw new Error(`CSS Styling data must be an instanceof an Object`)
+			let res = "";
+			for(const key in styles) {
+				this.style[key] = styles[key];
+			}
+		},
+        configurable: true
+	},
+
+	attr: {
+		value: function(attrs) {
+			if(!attrs instanceof Object) 
+				throw new Error(`ATTR data must be an instanceof an Object`)
+			for(const key in attrs) {
+				this[key] = attrs[key];
+			}
+		},
+        configurable: true
+	},
+
+	setFullScreen: {
+		value: function(eventListener) {
+			let _this = this;
+			this.addEventListener(eventListener, () => {
+				if (_this.requestFullscreen) 
+					_this.requestFullscreen();
+				else if (_this.mozRequestFullScreen) 
+					_this.mozRequestFullScreen();
+				else if (_this.webkitRequestFullscreen) 
+					_this.webkitRequestFullscreen();
+				else if (_this.msRequestFullscreen) 
+					_this.msRequestFullscreen();
+			});
+		},
+		configurable: false,
+		writable: false
+	}
+    
+});
+
+
+
+Object.defineProperties(Math, {
+
+	degToRad: {
+		value:function(number) {
+			return number * this.PI / 180;
+		},
+        configurable: true,
+	},
+
+	radToDeg: {
+		value: function(number) {
+			return number * 180 / this.PI;
+		},
+        configurable: true,
+	},
+
+	randRange: {
+		value: function(min, max) {
+			return this.random() * (max - min + 1) + min;
+		},
+        configurable: true,
+	},
+
+	clamp: {
+		value: function(min, max, val) {
+			return this.min(this.max(min, +val), max);
+		},
+        configurable: true,
+	}
+    
+});
+
+
+
+class CustomError extends Error {
+    constructor(name, message) {
+        super(message);
+        this.name = name;
+    }
+
+};
+
+
+/**
+ * Draw Polygon
+ * Draw filled Shape
+ */
+CanvasRenderingContext2D.prototype.__proto__ = {
+
+	colorStyle: undefined,
+
+	set fillStyle(val) {
+		let color;
+		if(val instanceof Color)
+			color = val.toString();
+		else color = val;
+		this.colorStyle = color;
+		this.fillStyle = this.colorStyle;
+	},
+
+	set strokeStyle(val) {
+		let color;
+		if(val instanceof Color)
+			color = val.toString();
+		else color = val;
+		this.colorStyle = color;
+		this.strokeStyle = this.colorStyle;
+	}
+
+};
+/**
  * Vector Mixin class:
  * Contains common operations for each vector's type [2d, 3d]
+ * 
+ * export classes [
+ * Vector2, 
+ * Vector3
+ * ]
+ * 
+ * private classes and functions [
+ * VectorMixin
+ * ]
  */
 class VectorMixin {
 
@@ -114,6 +254,10 @@ class Vector2 extends VectorMixin {
         return res;
     }
 
+    get angle() {
+        return Math.atan2(this.y, this.x);
+    }
+
 };
 
 
@@ -143,7 +287,8 @@ class Vector3 extends VectorMixin {
         return res;
     }
 
-};/**
+};
+/**
  * @description contains general matrix operations
  * Valid matrices are the squarely 3x3 annd 4x4 represented 
  * as a homogeneous coordinate
@@ -158,6 +303,16 @@ class Vector3 extends VectorMixin {
  * 
  * Types of matrix
  * https://www.mathsisfun.com/algebra/matrix-types.html
+ * 
+ * 
+ * containing export classes [
+ * Mat3x3
+ * Mat4x4
+ * ]
+ * 
+ * private classes and functions [
+ * MatrixMixin
+ * ]
  * 
  */
 const MatrixMixin = ((length) => {
@@ -377,3 +532,379 @@ class Mat4x4 {
 
 Object.assign(Mat3x3, MatrixMixin(3));
 Object.assign(Mat4x4, MatrixMixin(4));
+class Color {
+    constructor(h=0, s=0, l=0, a=255) {
+        this.h = h;
+        this.s = s;
+        this.l = l;
+        this.a = a;
+    }
+
+    add(color) {
+        let res = new Color();
+        res.h = this.h + color.h;
+        res.s = this.s + color.s;
+        res.l = this.l + color.l;
+        res.a = this.a + color.a;
+        return res;
+    }
+
+    sub(color) {
+        let res = new Color();
+        res.h = this.h - color.h;
+        res.s = this.s - color.s;
+        res.l = this.l - color.l;
+        res.a = this.a - color.a;
+        return res;
+    }
+
+    toString() {
+        return `hsla(${this.h}, ${this.s}%, ${this.l}%, ${this.a})`;
+    }
+
+};
+
+
+Object.assign(Color, {
+    Red: new Color(0, 100, 50),
+    Green: new Color(120, 100, 50),
+    Blue: new Color(250, 100, 50),
+    Purple: new Color(270, 100, 50),
+    Black: new Color(0, 0, 0, 0),
+    White: new Color(360, 100, 100)
+});
+class Preloader {
+    /**
+     * @description loads a single image file
+     * @param {String} src location of the image
+     * @returns {Promise}
+     */
+    static loadImage(src) {
+        let img;
+        if(src instanceof HTMLImageElement)
+            img = src;
+        else {
+            img = new Image();
+            img.src = src;
+        };
+        console.log("ggg");
+        let promise =  new Promise((resolve, reject) => {
+            img.addEventListener("load", () => {
+                resolve(img);
+            });
+            img.addEventListener("error", () => {
+                reject();
+            });
+        });
+        return promise;
+    }
+
+    // const loadFiles = (data, _this) => {
+    //     let req = new XMLHttpRequest();
+    //     req.onreadystatechange = function() {
+    //         if(req.readyState === XMLHttpRequest.DONE) {
+    //             if(req.status === 200) {
+    //                 _this._preloadedAssetsCounter++;
+    //                 data.res = req.responseText;
+    //                 _this.loadingFunction();
+    //             } else {
+    //                 this.error = `Bad Internet Connection`;
+    //                 _this.status = "failed";
+    //             }
+    //         }
+    //     };
+    //     req.open("GET", data.src);
+    //     req.send();
+    // }
+
+
+    /**
+     * @description load multiple images
+     * @param  {...any} args Data for the images
+     * @returns 
+     * arg = {src, id}
+     */
+     static loadImage(...args) {
+        
+    }
+
+    static loadDocument() {
+        
+    }
+
+    static loadAudio() {
+        
+    }
+
+    static loadURL() {
+        
+    }
+
+    constructor() {
+
+    }
+
+    async start() {
+
+    }
+
+};
+/**
+ * FireBase
+ * local storage
+ * JSON
+ */
+
+class DataBase {
+
+
+};
+class WebScraper extends DOMParser {
+
+
+};
+function appendSceneToParent(type, scene, parent, w, h) {
+    if(parent instanceof HTMLElement)
+        parent.appendChild(scene);
+    else if(parent instanceof Scene)
+        parent.element.appendChild(scene);
+
+    if(!(type.toLowerCase() === "canvas")) {
+        scene.style.width = w;
+        scene.style.height = h;
+    }
+};
+
+
+/**
+ * 
+ */
+class Scene {
+    constructor(type, parent, w=300, h=300) {
+        if(!(parent instanceof HTMLElement) && !(parent instanceof Scene));
+            // throw 
+        this.type = type;
+        this.element = document.createElement(this.type);
+        this.parentElement = parent;
+
+        if(document.readyState === "complete") {
+            appendSceneToParent(this.type, this.element, parent);
+        }
+        else {
+            window.addEventListener("load", () => {
+                appendSceneToParent(this.type, this.element, parent);
+            });
+        }
+    }
+
+    set parentElement(ele) {
+        if(ele instanceof HTMLElement)
+            ele.appendChild(this.element);
+        else if(ele instanceof Scene)
+            ele.element.appendChild(this.element);
+    }
+
+    css(styles) {
+        this.element.css(styles);
+    }
+
+    attr(_attrib) {
+        this.element.attr(_attrib);
+    }
+
+    setFullScreen(eventListener) {
+        this.element.setFullScreen(eventListener)
+    }
+
+};
+
+
+const Canvas = (() => {
+    let width, height, clearColor;
+    let isDynamic;
+
+    let deltaTimeStarted, 
+        deltaTime,
+        fpsTimeStarted,
+        fps,
+        elapsedTimeStarted;
+
+    class Canvas extends Scene {
+
+        constructor(parent, w = 300, h = 150, animate = false) {
+            super("canvas", parent);
+            this.width = w;
+            this.height = h;
+            this.context2d = this.element.getContext("2d");
+            this.requestAnimationFrame = animate;
+        }
+    
+        set width(v) {
+            width = v;
+            this.element.width = width;
+        }
+    
+        set height(v) {
+            height = v;
+            this.element.height = height;
+        }
+
+        set clearColor(val) {
+            clearColor = val;
+        }
+
+        set requestAnimationFrame(val) {
+            isDynamic = val;
+        }
+
+        get clearColor() {
+            return clearColor;
+        }
+
+        get elapsedTime() {
+            return new Date().getTime() - elapsedTimeStarted;
+        }
+
+        get fps() {
+            fps = 1000 / (this.currentTime - fpsTimeStarted);
+            fpsTimeStarted = this.currentTime;
+            return fps;            
+        }
+
+        get deltaTime() {
+            deltaTime = Math.abs(this.currentTime - deltaTimeStarted) * 0.001;
+            deltaTimeStarted = this.currentTime;
+            if(deltaTime > 0.2)
+                deltaTime = 0;
+            return deltaTime;
+        }
+
+        clear(x1, y1, x2, y2) {
+            let x = x1 || 0;
+            let y = y1 || 0;
+            let w = x2 || this.element.width;
+            let h = y2 || this.element.height;
+            if(clearColor === undefined) {
+                this.context2d.clearRect(x, y, w, h);
+            } else {
+                this.context2d.fillStyle = clearColor;
+                this.context2d.fillRect(x, y, w, h);
+            }
+        }
+    
+        mainLoop() {
+            if(!(typeof this.update === "function"))
+                throw new Error("Canvas Must define a virtual update method before calling mainloop");
+            fpsTimeStarted = new Date().getTime();
+            deltaTimeStarted = new Date().getTime();
+            elapsedTimeStarted = new Date().getTime();
+            if(isDynamic) {
+                const animate = () => {
+                    this.currentTime = new Date().getTime();
+                    this.clear();
+                    this.update();
+                    requestAnimationFrame(animate);
+                };
+                requestAnimationFrame(animate);
+            } else this.update();
+        }
+    
+    };
+
+    return Canvas;
+
+})();
+
+
+class GameEngine extends Scene {
+    constructor(w, h) {
+        super("section", document.body, w, h);
+        this.element.css({
+            position: "absolute",
+            top: "0px",
+            left: "0px",
+            width: w + "px",
+            height: h + "px",
+            zIndex: 9000
+        });
+        this.scenes = [];
+    }
+
+    addScene(scene) {
+        this.element.appendChild()
+    }
+
+    update() {
+
+    }
+
+    start() {
+
+    }
+
+};
+class Collision {
+    static AABB() {
+
+    }
+
+    static SAT() {
+        
+    }
+
+};
+
+
+const INVALID_POS_TYPE = "Shape position must be a vector2 or vector3 type";
+const INVALID_RECTANGLE_SIZE = "Rectangle size must be a vector2 or vector3 type";
+const INVALID_POLYGON_DATA = "All Polygon data must be a vector2 or vector3 type";
+
+
+class ShapeMixin {
+    constructor(type, ...args) {
+        this.type = type; // [circle, rectangle, polygon]
+
+        if(!(args[0] instanceof e.Vector2) && !(args[0] instanceof e.Vector3))
+            throw INVALID_VECTOR(INVALID_POS_TYPE);
+
+        this.pos = args[0];
+        if(this.type === "circle") 
+            this.radius = args[1];
+        else if(this.type === "rectangle") {
+            if(!(args[1] instanceof e.Vector2) && !(args[1] instanceof e.Vector3))
+                throw INVALID_VECTOR(INVALID_RECTANGLE_SIZE);
+            this.size = args[1];
+        } else if(this.type === "polygon") {
+            if(args.some(i => !(i instanceof e.Vector2) && !(i instanceof e.Vector3)))
+                throw INVALID_VECTOR(INVALID_POLYGON_DATA);
+            this.vertices = [];
+            for(let i=1; i < args.length; i++) 
+                this.vertices.push(args[i]);
+        }          
+    }
+
+    setRotation() {
+
+    }
+
+
+    move() {
+
+    }
+
+};
+
+/**
+ * Get bounding rect
+ * get bounding circle
+ * set image fill and make ctx draw them
+ */
+
+class CircleShape extends ShapeMixin {
+    constructor(pos, radius = 0) {
+        super("circle", pos, radius);
+    }
+
+};
+
+

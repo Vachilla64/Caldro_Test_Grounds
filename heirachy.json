@@ -3,18 +3,30 @@
         "constants",
         "functions",
         "vector",
-        "matrices"
+        "matrices",
+        "color"
     ],
+
     "network": [
-
+        "preloader",
+        "database",
+        "scrapper"
     ],
+
     "window": [
-
+        "scene",
+        "canvas",
+        "game"
     ],
+
     "physics": [
-
+        "collision"
     ],
+    
     "graphics": [
-
+        "shapeMixin",
+        "circle",
+        "rectangle",
+        "polygon"
     ]
 }

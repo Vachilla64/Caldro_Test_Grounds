@@ -133,6 +133,7 @@ class CaldroFileFormatter:
                                 else:
                                     currentText = " ".join(broken[1:])
                             f.write(currentText)
+                        f.write("\n")    
                     f.close()
         
         

@@ -1,9 +1,27 @@
+/**
+ * Create splashscreen
+ * toast
+ * controls
+ */
 import * as caldro from "../caldrodev.js";
 
+const {Canvas, Color} = caldro;
 
-const Mat3x3 = caldro.Mat3x3;
-let f = new caldro.Vector2(1, 1, 1);
-let a = Mat3x3.create(2, 0, 0, 0, 2);
-let b = caldro.Mat4x4.pitchRotation(10);
+class App extends Canvas {
 
-console.log(b);
+    constructor(w, h) {
+        super(document.body, w, h);
+        this.css({backgroundColor: "#000"});
+        // this.requestAnimationFrame = true;
+        // this.clearColor = "#000";
+    }
+
+    update() {
+        this.context2d.fillStyle = Color.Red;
+        this.context2d.fillRect(0, 0, 100, 100);
+    }
+
+};
+
+let a = new App(200, 200);
+a.mainLoop();
