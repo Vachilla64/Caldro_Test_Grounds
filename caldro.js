@@ -1,9 +1,32 @@
 
-
-const REPOSITORY = "github.com/Vachilla64/Caldro";const CONTAINERS = [];// errors
+const DEBUG = false;// errors
 const INVALID_VECTOR = (msg = "Please provide an appropriate vector's type") => new CustomError("NOT_A_VECTOR", msg);const INVALID_SCENE = (msg = "Please provide an appropriate Scene/HTMLElement type") => new CustomError("NOT_A_SCENE", msg);
 
+const defaultExport = "This file has been included";
+const DEBUG_LOG = (type, msg) => {	if(DEBUG)
+		window.console[type](msg);
+};
 
+const detectDevice = () => {	// const device = window.navigator.match(/ios/ipod/i);
+	// Opera 8.0+
+// var isOpera = (!!window.opr && !!opr.addons) || !!window.opera || navigator.userAgent.indexOf('
+// OPR/') >= 0;
+// // Firefox 1.0+
+// var isFirefox = typeof InstallTrigger !== 'undefined';
+// // At least Safari 3+: "[object HTMLElementConstructor]"
+// var isSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0;
+// // Internet Explorer 6-11
+// var isIE = /*@cc_on!@*/false || !!document.documentMode;
+// // Edge 20+
+// var isEdge = !isIE && !!window.StyleMedia;
+// // Chrome 1+
+// var isChrome = !!window.chrome && !!window.chrome.webstore;
+// // Blink engine detection
+// var isBlink = (isChrome || isOpera) && !!window.CSS;
+};
+
+
+// Cross-Platform request Animation Frame
 window.requestAnimationFrame = (function() {
     return window.requestAnimationFrame || 
     window.webkitRequestAnimationFrame ||
@@ -14,15 +37,34 @@ window.requestAnimationFrame = (function() {
 })();
 
 
+const stringToCssFormat = (string) => {
+	let res = "";
+	for(let i=0; i < string.length; i++) {
+		if(string[i].codePointAt() >= 65 && string[i].codePointAt() <=90) {
+			res += "-";
+			res += string[i].toLowerCase();
+			res += string[++i];
+		} else
+			res += string[i];
+	};
+	return res;
+};
+
+
+// HTML Element's extension
 Object.defineProperties(HTMLElement.prototype, {
    
     css: {
 		value: function(styles) {
 			if(!styles instanceof Object) 
 				throw new Error(`CSS Styling data must be an instanceof an Object`)
-			let res = "";
 			for(const key in styles) {
-				this.style[key] = styles[key];
+				let res = stringToCssFormat(key);
+				if(styles[key] instanceof Color) {
+					this.style.setProperty(res, styles[key].toString())
+				} else {
+					this.style.setProperty(res, styles[key]);
+				}	
 			}
 		},
         configurable: true
@@ -61,6 +103,7 @@ Object.defineProperties(HTMLElement.prototype, {
 
 
 
+// Math Object Extension
 Object.defineProperties(Math, {
 
 	degToRad: {
@@ -77,9 +120,24 @@ Object.defineProperties(Math, {
         configurable: true,
 	},
 
-	randRange: {
+	/**
+	 * Exclusive interval range [min, max]
+	 * Returns a number between min and max [Max included]
+	 */
+	eRange: {
 		value: function(min, max) {
 			return this.random() * (max - min + 1) + min;
+		},
+        configurable: true,
+	},
+
+	/**
+	 * Inclusive interval range [min, max)
+	 * Returns a number between min and max [Max excluded]
+	 */
+	iRange: {
+		value: function(min, max) {
+			return this.random() * (max - min) + min;
 		},
         configurable: true,
 	},
@@ -94,7 +152,9 @@ Object.defineProperties(Math, {
 });
 
 
-
+/**
+ * Custom Error, this class is bound to be modified later in the future
+ */
 class CustomError extends Error {
     constructor(name, message) {
         super(message);
@@ -104,10 +164,11 @@ class CustomError extends Error {
 };
 
 
-/**
- * Draw Polygon
- * Draw filled Shape
- */
+
+// Canvas 2d rendering context extension
+
+
+
 CanvasRenderingContext2D.prototype.__proto__ = {
 
 	colorStyle: undefined,
@@ -128,6 +189,49 @@ CanvasRenderingContext2D.prototype.__proto__ = {
 		else color = val;
 		this.colorStyle = color;
 		this.strokeStyle = this.colorStyle;
+	},
+
+	polygonShape(arg) {
+		if(arg instanceof Shape.Polygon) {
+			if(arg.fillStyle) {
+				this.fillStyle = arg.fillStyle;
+			} 
+			if(arg.strokeStyle) {
+				this.strokeStyle = arg.strokeStyle;
+			}
+			this.beginPath();
+			this.moveTo(arg.vertices[0].x, arg.vertices[0].y)
+			for(let i=1; i < arg.vertices.length; i++) 
+				this.lineTo(arg.vertices[i].x, arg.vertices[i].y);
+			this.closePath();
+			if(arg.fillStyle) this.fill();
+			if(arg.strokeStyle) {
+				this.stroke();
+			}
+		} else {
+			console.warn("Argument to polygonShape must be an instance of ShapeMixin");
+		}
+	},
+
+
+	circleShape(arg) {
+		if(arg instanceof Shape.Circle) {
+			if(arg.fillStyle) {
+				this.fillStyle = arg.fillStyle;
+			} 
+			if(arg.strokeStyle) {
+				this.strokeStyle = arg.strokeStyle;
+			}
+			this.beginPath();
+			this.arc(this.pos.x, this.pos.y, this.radius, 0, 2*Math.PI);
+			this.closePath();
+			if(arg.fillStyle) this.fill();
+			if(arg.strokeStyle) {
+				this.stroke();
+			}
+		} else {
+			console.warn("Argument to polygonShape must be an instance of ShapeMixin");
+		}
 	}
 
 };
@@ -299,7 +403,7 @@ class Vector3 extends VectorMixin {
  * 
  * 
  * @todo
- * Transpose, inverse, determinant
+ * inverse, determinant
  * 
  * Types of matrix
  * https://www.mathsisfun.com/algebra/matrix-types.html
@@ -433,8 +537,14 @@ const MatrixMixin = ((length) => {
 
 
     // A Transpose is where we swap entries across the main diagonal (rows become columns)
-    mixins.transpose = () => {
-
+    mixins.transpose = (mat) => {
+        let m = mixins.create();
+        for(let i=0; i < length; i++) {
+            for(let j=0; j < length; j++) {
+                m[j][i] = mat[i][j];
+            }
+        };
+        return m;
     };
 
 
@@ -532,317 +642,641 @@ class Mat4x4 {
 
 Object.assign(Mat3x3, MatrixMixin(3));
 Object.assign(Mat4x4, MatrixMixin(4));
+// need this import to access Math.clamp method
+
+/**
+ * @description A simple color class
+ */
 class Color {
-    constructor(h=0, s=0, l=0, a=255) {
-        this.h = h;
-        this.s = s;
-        this.l = l;
-        this.a = a;
+    /**
+     * @description RGBA Constructor
+     * @param {Number} r red ranges from 0 - 255
+     * @param {Number} g green ranges from 0 - 255
+     * @param {Number} b blue from 0 - 255
+     * @param {Number} a alpha ranges from 0 -1
+     */
+    constructor(r = 0, g = 0, b = 0, a = 1) {
+        this._r = r;
+        this._g = g;
+        this._b = b;
+        this._a = a;
     }
 
-    add(color) {
-        let res = new Color();
-        res.h = this.h + color.h;
-        res.s = this.s + color.s;
-        res.l = this.l + color.l;
-        res.a = this.a + color.a;
-        return res;
-    }
+    set r(v) { this._r =  Math.clamp(0.001, 255, v); }
 
-    sub(color) {
+    set g(v) { this._g = Math.clamp(0.001, 255, v); }
+
+    set b(v) { this._b = Math.clamp(0.001, 255, v); }
+
+    set a(v) { this._a =  Math.clamp(0.001, 1, v); }
+
+    get r() { return this._r; }
+
+    get g() { return this._g; }
+
+    get b() { return this._b; }
+
+    get a() { return this._a; }
+
+
+    /**
+     * @description mix two colors together but subtractively
+     * @param {Color} color color to be mixed
+     * @returns {Color} subtractive mixins of two color
+     */
+    mix(color) {
+        if(!(color instanceof Color)) {
+            console.error("Color mix expects an instance of Color Object")
+            return;
+        }
         let res = new Color();
-        res.h = this.h - color.h;
-        res.s = this.s - color.s;
-        res.l = this.l - color.l;
-        res.a = this.a - color.a;
+        res.r = (this.r * color.r) / 255;
+        res.g = (this.g * color.g) / 255;
+        res.b = (this.b * color.b) / 255;
+        res.a = (this.a * color.a) / 1;
         return res;
     }
 
     toString() {
-        return `hsla(${this.h}, ${this.s}%, ${this.l}%, ${this.a})`;
+        return `rgba(${this.r}, ${this.g}, ${this.b}, ${this.a})`;
     }
-
 };
 
 
-Object.assign(Color, {
-    Red: new Color(0, 100, 50),
-    Green: new Color(120, 100, 50),
-    Blue: new Color(250, 100, 50),
-    Purple: new Color(270, 100, 50),
-    Black: new Color(0, 0, 0, 0),
-    White: new Color(360, 100, 100)
+/** ROYGBIV */
+Object.defineProperties(Color, {
+    Red: { value: new Color(255, 0, 0) },
+    Orange: {value: new Color(255, 0, 0) },
+    Yellow: {value: new Color(255, 0, 0) },
+    Green: {value: new Color(0, 255, 0) },
+    Indigo: {value: new Color(255, 0, 0) },
+    Blue: {value: new Color(0, 0, 255) },
+    Violet: {value: new Color(255, 0, 0) },
+    Black: {value: new Color(0, 0, 0) },
+    Transparent: {value: new Color(0, 0, 0, 0)},
 });
-class Preloader {
-    /**
-     * @description loads a single image file
-     * @param {String} src location of the image
-     * @returns {Promise}
-     */
-    static loadImage(src) {
-        let img;
-        if(src instanceof HTMLImageElement)
-            img = src;
-        else {
-            img = new Image();
-            img.src = src;
-        };
-        console.log("ggg");
-        let promise =  new Promise((resolve, reject) => {
-            img.addEventListener("load", () => {
-                resolve(img);
-            });
-            img.addEventListener("error", () => {
-                reject();
-            });
-        });
-        return promise;
-    }
-
-    // const loadFiles = (data, _this) => {
-    //     let req = new XMLHttpRequest();
-    //     req.onreadystatechange = function() {
-    //         if(req.readyState === XMLHttpRequest.DONE) {
-    //             if(req.status === 200) {
-    //                 _this._preloadedAssetsCounter++;
-    //                 data.res = req.responseText;
-    //                 _this.loadingFunction();
-    //             } else {
-    //                 this.error = `Bad Internet Connection`;
-    //                 _this.status = "failed";
-    //             }
-    //         }
-    //     };
-    //     req.open("GET", data.src);
-    //     req.send();
-    // }
-
-
-    /**
-     * @description load multiple images
-     * @param  {...any} args Data for the images
-     * @returns 
-     * arg = {src, id}
-     */
-     static loadImage(...args) {
-        
-    }
-
-    static loadDocument() {
-        
-    }
-
-    static loadAudio() {
-        
-    }
-
-    static loadURL() {
-        
-    }
-
-    constructor() {
-
-    }
-
-    async start() {
-
-    }
-
-};
 /**
- * FireBase
- * local storage
- * JSON
+ * Singleton Preloader class 
+ * Able to 
+ * -Load images, audios and open link
  */
+const Preloader = (() => {
+    // current media added to buffer
+    let images = [], audios = [], urls = [];
+    // all loaded medias
+    const loadedImages = [], loadedAudios = [], loadedUrls = [];
+    // preloader object API
+    const preloader = {};
 
-class DataBase {
-
-
-};
-class WebScraper extends DOMParser {
-
-
-};
-function appendSceneToParent(type, scene, parent, w, h) {
-    if(parent instanceof HTMLElement)
-        parent.appendChild(scene);
-    else if(parent instanceof Scene)
-        parent.element.appendChild(scene);
-
-    if(!(type.toLowerCase() === "canvas")) {
-        scene.style.width = w;
-        scene.style.height = h;
-    }
-};
-
-
-/**
- * 
- */
-class Scene {
-    constructor(type, parent, w=300, h=300) {
-        if(!(parent instanceof HTMLElement) && !(parent instanceof Scene));
-            // throw 
-        this.type = type;
-        this.element = document.createElement(this.type);
-        this.parentElement = parent;
-
-        if(document.readyState === "complete") {
-            appendSceneToParent(this.type, this.element, parent);
-        }
-        else {
-            window.addEventListener("load", () => {
-                appendSceneToParent(this.type, this.element, parent);
-            });
-        }
-    }
-
-    set parentElement(ele) {
-        if(ele instanceof HTMLElement)
-            ele.appendChild(this.element);
-        else if(ele instanceof Scene)
-            ele.element.appendChild(this.element);
-    }
-
-    css(styles) {
-        this.element.css(styles);
-    }
-
-    attr(_attrib) {
-        this.element.attr(_attrib);
-    }
-
-    setFullScreen(eventListener) {
-        this.element.setFullScreen(eventListener)
-    }
-
-};
-
-
-const Canvas = (() => {
-    let width, height, clearColor;
-    let isDynamic;
-
-    let deltaTimeStarted, 
-        deltaTime,
-        fpsTimeStarted,
-        fps,
-        elapsedTimeStarted;
-
-    class Canvas extends Scene {
-
-        constructor(parent, w = 300, h = 150, animate = false) {
-            super("canvas", parent);
-            this.width = w;
-            this.height = h;
-            this.context2d = this.element.getContext("2d");
-            this.requestAnimationFrame = animate;
-        }
-    
-        set width(v) {
-            width = v;
-            this.element.width = width;
-        }
-    
-        set height(v) {
-            height = v;
-            this.element.height = height;
-        }
-
-        set clearColor(val) {
-            clearColor = val;
-        }
-
-        set requestAnimationFrame(val) {
-            isDynamic = val;
-        }
-
-        get clearColor() {
-            return clearColor;
-        }
-
-        get elapsedTime() {
-            return new Date().getTime() - elapsedTimeStarted;
-        }
-
-        get fps() {
-            fps = 1000 / (this.currentTime - fpsTimeStarted);
-            fpsTimeStarted = this.currentTime;
-            return fps;            
-        }
-
-        get deltaTime() {
-            deltaTime = Math.abs(this.currentTime - deltaTimeStarted) * 0.001;
-            deltaTimeStarted = this.currentTime;
-            if(deltaTime > 0.2)
-                deltaTime = 0;
-            return deltaTime;
-        }
-
-        clear(x1, y1, x2, y2) {
-            let x = x1 || 0;
-            let y = y1 || 0;
-            let w = x2 || this.element.width;
-            let h = y2 || this.element.height;
-            if(clearColor === undefined) {
-                this.context2d.clearRect(x, y, w, h);
-            } else {
-                this.context2d.fillStyle = clearColor;
-                this.context2d.fillRect(x, y, w, h);
-            }
-        }
-    
-        mainLoop() {
-            if(!(typeof this.update === "function"))
-                throw new Error("Canvas Must define a virtual update method before calling mainloop");
-            fpsTimeStarted = new Date().getTime();
-            deltaTimeStarted = new Date().getTime();
-            elapsedTimeStarted = new Date().getTime();
-            if(isDynamic) {
-                const animate = () => {
-                    this.currentTime = new Date().getTime();
-                    this.clear();
-                    this.update();
-                    requestAnimationFrame(animate);
-                };
-                requestAnimationFrame(animate);
-            } else this.update();
-        }
-    
+    const printables = [];
+    for(let i=65, j=0; i <= 122; i++, j++) {
+        printables.push(String.fromCodePoint(i));
+        printables.push(String(j));
     };
 
-    return Canvas;
+    /**
+     * @description This function extract a supposed name from it's argument
+     * // input: https://google.com
+     * // output: google
+     * @param {String} source destination source
+     * @returns {String} name of the link
+     */
+    const getId = (source) => {
+        let start = source.lastIndexOf(".");
+        let name = "";
+        while(printables.includes(source[start - 1])) {
+            start--;
+            let currentChar = source[start];
+            name += currentChar;
+        };
+        return name.split("").reverse().join("");
+    };
+
+
+    /**
+     * @description loads a single image file
+     * @param {any} param location of the image
+     * @returns {Promise}
+     * 
+     * param1 = "....jpg"  // string
+     * param2 = {src, id}  // object
+     */
+    const loadImage = param => {
+        const img = new Image();
+        if(typeof param === "string") {
+            img.src = param;
+            img.id = getId(param);
+        }else if(typeof param === "object") {
+            img.src = param.src;
+            img.id = param.id || getId(param.src);
+        };
+        const promise = new Promise((resolve, reject) => {
+            img.addEventListener("load", () => {
+                loadedImages.push(img);
+                resolve(1);
+            });
+            img.addEventListener("error", () => {
+                reject("Something went wrong :( while loading " + src);
+            })
+        });
+        return promise;
+    };
+
+
+    /**
+     * @description loads a single audio file
+     * @param {String} src location of the audio
+     * @returns {Promise}
+     */
+     const loadAudio = param => {
+        const ctx = new AudioContext();
+        let src = typeof param === "string" ? param : param.src;
+        let id = typeof param === "string" ? getId(param) : param.id || getId(param);
+        let promise = fetch(src).then(e => e.arrayBuffer())
+        .then(e => ctx.decodeAudioData(e)).then(e => {
+            const sound = ctx.createBufferSource();
+            sound.buffer = e;
+            sound.connect(ctx.destination);
+            sound.play = function(when = ctx.currentTime, offset=0, duration = sound.buffer.duration) {
+                sound.start(when, offset, duration);
+            };
+            sound.id = id;
+            loadedAudios.push(sound);
+            return 1;
+        });
+        return promise;
+    };
+
+
+    /**
+     * @description loads a single url link
+     * @param {String} src location of the link
+     * @returns {Promise}
+     */
+     const loadUrl = param => {
+        if(typeof param === "object") {
+            param.res = "";
+        } else if(typeof param === "string") {
+            let old = param;
+            param = {src: old, id: getId(old), res:""}
+        };
+        let promise = fetch(param.src).then(
+            e => e.text()).then(e => {
+                param.res = e;
+                loadedUrls.push(param);
+                return 1;
+            });
+        return promise;
+    };
+
+
+    preloader.addImages = (...args) => {
+        args.forEach(arg => {
+            if(typeof arg === "string" || typeof arg === "object") 
+                images.push(arg);
+        });
+    };
+
+    preloader.addAudios = (...args) => {
+        args.forEach(arg => {
+            if(typeof arg === "string" || typeof arg === "object") 
+                audios.push(arg);
+        }); 
+    };
+
+    // {src, id}
+    preloader.addUrls = (...args) => {
+        args.forEach(arg => {
+            if(typeof arg === "string" || typeof arg === "object") 
+                urls.push(arg);
+        });
+    };
+
+
+    // call this function to start preloading every objects in 
+    // their respected buffer
+    preloader.sync = async function(){
+        let pImages = [];
+        let pAudios = [];
+        let pUrls = [];
+        images.forEach(src => pImages.push(loadImage(src)));
+        images = [];
+        audios.forEach(src => pAudios.push(loadAudio(src)));
+        audios = [];
+        urls.forEach(src => pUrls.push(loadUrl(src)));
+        urls = [];
+        return await Promise.all([...pImages, ...pAudios, ...pUrls])
+        .then(e => {
+            let res = {
+                getImage(id) {
+                    if(typeof id === "number")
+                        return loadedImages[id];
+                    return loadedImages.filter(i => i.id === id)[0];
+                },
+                getAudio(id) {
+                    if(typeof id === "number")
+                        return loadedAudios[id];
+                    return loadedAudios.filter(i => i.id === id)[0];
+                },
+                getUrl(id) {
+                    if(typeof id === "number")
+                        return loadedUrls[id];
+                    return loadedUrls.filter(i => i.id === id)[0];
+                }
+            };
+            return res;
+        });
+    };
+
+    return preloader;
 
 })();
+/**
+ * @description Web storage mxiins
+ * @param {any} type type of the storage [local, session]
+ * @returns {Object} session manipulations API
+ */
+const WebStorageMixin = ((type) => {
+
+    let isAvailable = true;
+    try {
+        type.setItem("caldroJS", "")
+    } catch(err) {
+        isAvailable = false;
+    };
+
+    const storage = {};
+    storage.isAvailable = isAvailable;
+
+    storage.add = (name, title) => {
+        let value = typeof title === "object" ? JSON.stringify(title) : title;
+        type.setItem(String(name), value);
+    };
+
+    storage.get = (name) => {
+        return type.getItem(name);
+    };
+
+    storage.update = (name, title) => {
+        let value = typeof title === "object" ? JSON.stringify(title) : title;
+        type.setItem(String(name), value);
+    };
+
+    storage.delete = (name) => {
+        type.removeItem(name);
+    };
+
+    storage.clear = () => {
+        type.clear();
+    };
+
+    return storage;
+
+});
+
+const LocalStorage = WebStorageMixin(window.localStorage);const SessionStorage = WebStorageMixin(window.sessionStorage);
+class IndexDB {
+};
+class Firebase {
+    
+
+};
+/**
+ * @todo
+ * Add orientation mode for landscape and offset fixin
+ */
+
+/**
+ * @description append scene element to parent element
+ * @param {HTMLElement | Scene} scene Element
+ * @param {HTMLElement | Scene} parent Element
+ */
+const appendSceneToParent = (scene, parent) => {
+    if(parent instanceof HTMLElement) {
+        parent.appendChild(scene);
+    }
+    else if(parent instanceof Scene) {
+        parent.element.appendChild(scene);
+    }
+};
 
 
-class GameEngine extends Scene {
-    constructor(w, h) {
-        super("section", document.body, w, h);
-        this.element.css({
-            position: "absolute",
-            top: "0px",
-            left: "0px",
-            width: w + "px",
-            height: h + "px",
-            zIndex: 9000
-        });
-        this.scenes = [];
+/**
+ * Scene class is suitable for creating HTML Element
+ * If parent element is specified, the scene silently 
+ * wait for DOM to be loaded and append it's element to the parent element
+ */
+class Scene {
+    /**
+     * 
+     * @param {String} type type of the element to be created by tag
+     * @param {HTMLElement | String | null} parent reference to the parent element
+     * @param {String} w width of the element in css format 
+     * @param {String} h height of the element in css format
+     */
+    constructor(type, parent, w = "300px", h = "300px") {
+        this.type = type;
+        this.element = document.createElement(this.type);
+        this._parentElement = parent;
+        this.parentElement = parent;
+        this._width = w;
+        this._height = h;
+        this._parentElementInitialised = 0;
+        this._orientation = "potrait";
+        this._id = "scene@"+Math.random() * parseInt(Math.random() * 5000);
+        this._className = undefined;
+        this.css({width:w, height: h});
+        if(document.readyState === "complete") {
+            appendSceneToParent(this.element, this.parentElement);
+        } else {
+            window.addEventListener("load", () => {
+                appendSceneToParent(this.element, this.parentElement);
+            });
+        }
     }
 
-    addScene(scene) {
-        this.element.appendChild()
+    set parentElement(parent) {
+        if(!this._parentElementInitialised) {
+            this._parentElement = parent;
+            this._parentElementInitialised++;
+        } else {
+            if(!(parent instanceof HTMLElement) && !(parent instanceof Scene))
+                throw TypeError("Parent Element must be an instance of Scene | HTMLElement");
+            this._parentElement = parent instanceof Scene ? parent.element : parent;
+            this._parentElement.append(this.element);
+        }
     }
 
-    update() {
-
+    get parentElement() { 
+        if(this._parentElement instanceof HTMLElement)
+            return this._parentElement;
+        else if(this._parentElement instanceof Scene)
+            return this._parentElement.element;
     }
 
-    start() {
+    set className(val) { this._className = val; }
 
+    get className() { return this._className; }
+
+    set id(val) {this._id = val; }
+
+    get id() { return this.id; }
+
+    set orientation(val) {
+        this._orientation = val;
+        if(this._orientation === Scene.Portrait) {
+            DEBUG_LOG("log", Scene.Portrait);
+            DEBUG_LOG("log", "Portait Method is not implemented yet");
+        } else if(this._orientation === Scene.LandScape) {
+            DEBUG_LOG("log", Scene.LandScape);
+            this.css({
+                transformOrigin: "0 0",
+                transform: "rotate(90deg)",
+                position: this.getStyle("position") === "<empty string>" ? 
+                    "absolute" : this.getStyle("position"),
+                left: `${this.getStyle("height")}`
+            });
+        } else {
+            console.warn(`Cannot set orientation to an unknown type: ${val}`);
+            DEBUG_LOG("table", {
+                "Scene.Portrait": Scene.Portrait,
+                "Scene.LandScape": Scene.LandScape,
+            });
+        }
+    }
+
+    getStyle(props) {
+        return this.element.style.getPropertyValue(props);
+    }
+
+    get orientation() { return this._orientation; };
+
+    set width(w) {
+        this._width = w;
+        this.element.style.width = this._width;
+    }
+
+    get width() { return this._width; }
+
+    set height(h) {
+        this.height = h;
+        this.element.style.height = this._height;
+    }
+
+    get height() { return this._height; }
+
+    css(styles) { this.element.css(styles); }
+
+    attr(_attrib) { this.element.attr(_attrib); }
+
+    addEventListener(type, func) { this.element.addEventListener(type, func); }
+
+    setFullScreen(eventListener) {
+        this.element.setFullScreen(eventListener);
+        DEBUG_LOG("log", "setFullScreen expects an event listener type as argument: onclick...");
     }
 
 };
+
+
+Object.defineProperties(Scene, {
+    LandScape: {
+        value: "Rotate the scene by 90deg",
+        configurable: false,
+    }, 
+    Portrait: {
+        value: "Rotate the scene by either 0deg or 90deg",
+        configurable: false
+    }
+});
+
+
+/**
+ * GameArea is like an extension to HTMLCanvasElement 
+ * it inherit from scene
+ */
+class GameArea extends Scene {
+    /**
+     * 
+     * @param {HTMLElement | Scene | null} parent Where the element should be appended
+     * @param {Number} w width of the canvas
+     * @param {Number} h height of the canvas
+     */
+    constructor(parent, w = 300, h = 150) {
+        super("canvas", parent);
+        this.context2d = this.element.getContext("2d");
+        this.width = w;
+        this.height = h;
+        this._cycles = 0;
+        this._deltaTimeStarted = 0, 
+        this._deltaTime = 0,
+        this._fpsTimeStarted = 0,
+        this._fps = 0,
+        this._elapsedTimeStarted = 0;
+    }
+
+    set width(v) {
+        this.element.width = v;
+        this.element.style.setProperty("width", `${v}px`);
+    }
+
+    set height(v) {
+        this.element.height = v;
+        this.element.style.setProperty("height", `${v}px`);
+    }
+
+    get width() { return this.element.width; }
+
+    get height() { return this.element.height; }
+
+    set clearColor(val) { this._clearColor = val; }
+
+    get clearColor() { return this._clearColor; }
+
+    get elapsedTime() {
+        return new Date().getTime() - this._elapsedTimeStarted;
+    }
+
+    get fps() {
+        this._fps = 1000 / (this.currentTime - this._fpsTimeStarted);
+        this._fpsTimeStarted = this.currentTime;
+        return this._fps;            
+    }
+
+    get deltaTime() {
+        this._deltaTime = Math.abs(this.currentTime - this._deltaTimeStarted) * 0.001;
+        this._deltaTimeStarted = this.currentTime;
+        if(this._deltaTime > 0.2)
+            this._deltaTime = 0;
+        return this._deltaTime;
+    }
+
+    // how many time has the update function been called
+    get cycles() { return this._cycles; }
+
+    // if the clearColor was undefined, it clears the specified region in transparency
+    clear(x1, y1, x2, y2) {
+        let x = x1 || 0;
+        let y = y1 || 0;
+        let w = x2 || this.element.width;
+        let h = y2 || this.element.height;
+        if(this.clearColor === undefined) {
+            this.context2d.clearRect(x, y, w, h);
+        } else {
+            this.context2d.fillStyle = this.clearColor;
+            this.context2d.fillRect(x, y, w, h);
+        }
+    }
+
+    mainLoop(dynamic) {
+        if(!(typeof this.update === "function"))
+            throw new Error("Canvas Must define a virtual update method before calling mainloop");
+        this._fpsTimeStarted = new Date().getTime();
+        this._deltaTimeStarted = new Date().getTime();
+        this._elapsedTimeStarted = new Date().getTime();
+        if(dynamic === GameArea.Dynamic) {
+            DEBUG_LOG("log", "GameArea starts with a gameLoop");
+            const animate = () => {
+                this._cycles++;
+                this.currentTime = new Date().getTime();
+                this.clear();
+                this.update();
+                requestAnimationFrame(animate);
+            };
+            requestAnimationFrame(animate);
+        } else if(dynamic === GameArea.Static) {
+            DEBUG_LOG("log", "GameArea starts with no gameLoop");
+            this.update();
+        }
+        else {
+            console.warn(`MainLoop starting in a static mode because "mode: ${dynamic}" is unknown`);
+            this.update();
+            DEBUG_LOG("table", {
+                "GameArea.Static": GameArea.Static,
+                "GameArea.Dynamic": GameArea.Dynamic
+            });
+        }
+    }
+
+};
+
+
+
+Object.defineProperties(GameArea, {
+    LandScape: {
+        value: "Rotate the scene by 90deg",
+        configurable: false,
+    }, 
+    Portrait: {
+        value: "Rotate the scene by either 0deg or 90deg",
+        configurable: false
+    },
+    Static: {
+        value: "Run update function without RAF",
+        configurable: false,
+    },
+    Dynamic: {
+        value: "Run update function with RAF",
+        configurable: false,
+    }
+});
+
+
+class Loader extends Scene {
+    constructor(parent = document.body, bgColor="#fff", color="teal") {
+        super("div", parent, `${window.innerWidth}px`, `${window.innerHeight}px`);
+        this.id = "caldro@loader";
+        this.hasLoaded = Symbol("Single loader");
+        if(!(Loader.loaded === this.hasLoaded.toString())) 
+            Loader.loaded = this.hasLoaded.toString();
+        else 
+            throw new Error("You can only make a single instance of this class");
+        
+        let color1 = bgColor instanceof Color ? bgColor.toString() : bgColor;
+        let color2 = color instanceof Color ? color.toString() : color;
+        this.css({backgroundColor: color1});
+        let div = document.createElement("div");
+        div.id = "caldro_loader";
+        this.element.appendChild(div);
+        let style = document.createElement("style");
+        style.innerHTML = `
+        #caldro_loader {
+            width: 100px;
+            height: 25px;
+            border-top: 10px dotted ${color2};
+            position: absolute;
+            left: calc(50vw - 50px);
+            top: calc(50vh - 12px);
+            animation: spin 2s linear infinite
+        }
+        @keyframes spin {
+            from {
+                border-top: 10px dotted teal;
+            } 
+            to {
+                border-top: 5px dotted teal;
+            }
+        }`;
+        document.body.appendChild(style);
+    }
+
+    hide() {
+        this.element.display = "none";
+    }
+
+    show() {
+        this.element.display = "block";
+    }
+
+};
+
+Object.defineProperties(Loader, {
+    loaded: {
+        value: false,
+        configurable: false,
+        writable: true
+    }
+});
 class Collision {
     static AABB() {
 
@@ -852,59 +1286,100 @@ class Collision {
         
     }
 
-};
-
-
-const INVALID_POS_TYPE = "Shape position must be a vector2 or vector3 type";
-const INVALID_RECTANGLE_SIZE = "Rectangle size must be a vector2 or vector3 type";
-const INVALID_POLYGON_DATA = "All Polygon data must be a vector2 or vector3 type";
-
-
-class ShapeMixin {
-    constructor(type, ...args) {
-        this.type = type; // [circle, rectangle, polygon]
-
-        if(!(args[0] instanceof e.Vector2) && !(args[0] instanceof e.Vector3))
-            throw INVALID_VECTOR(INVALID_POS_TYPE);
-
-        this.pos = args[0];
-        if(this.type === "circle") 
-            this.radius = args[1];
-        else if(this.type === "rectangle") {
-            if(!(args[1] instanceof e.Vector2) && !(args[1] instanceof e.Vector3))
-                throw INVALID_VECTOR(INVALID_RECTANGLE_SIZE);
-            this.size = args[1];
-        } else if(this.type === "polygon") {
-            if(args.some(i => !(i instanceof e.Vector2) && !(i instanceof e.Vector3)))
-                throw INVALID_VECTOR(INVALID_POLYGON_DATA);
-            this.vertices = [];
-            for(let i=1; i < args.length; i++) 
-                this.vertices.push(args[i]);
-        }          
-    }
-
-    setRotation() {
-
-    }
-
-
-    move() {
-
+    static Tiled() {
+        
     }
 
 };
+
 
 /**
- * Get bounding rect
- * get bounding circle
- * set image fill and make ctx draw them
+ * Load texture and draw Texture
+ * bounding client
+ * draw rotated
  */
+class ShapeMixin {
+    constructor(pos) {
+        if(!(pos instanceof Vector2))
+            throw TypeError("Position on a shape was expected to be an instance of Vector2");
+        this.pos = pos;
+        this._color0 = undefined;
+        this._color1 = undefined;
+        this._rotation = 0;
+    }
 
-class CircleShape extends ShapeMixin {
-    constructor(pos, radius = 0) {
-        super("circle", pos, radius);
+    set fillStyle(v)  { this._color1 = v; }
+
+    get fillStyle() {
+        if(this._color1 instanceof Color)
+            return this._color1.toString();
+        return this._color1;
+    }
+
+    set strokeStyle(v)  { this._color0 = v; }
+
+    get strokeStyle() {
+        if(this._color0 instanceof Color)
+            return this._color0.toString();
+        return this._color0;
+    }
+
+    get rotation() { this._rotation; }
+
+};
+
+
+
+
+class Polygon extends ShapeMixin {
+    constructor(pos, vertices, color=undefined) {
+        super(pos);
+        if(vertices.some(i => !(i instanceof Vector2)))
+            throw TypeError("Vertices of a polygon must be an instance of Vector2");
+        this.vertices = [];
+        vertices.forEach(v => this.vertices.push(v));
+        this.fillStyle = color;
+    }
+
+    set rotation(v) { 
+        this._rotation = v;
+    }
+
+    draw(ctx) {
+        ctx.beginPath();
+        ctx.moveTo()
+        ctx.closePath();
     }
 
 };
 
 
+
+
+
+class Rectangle extends Polygon {
+    constructor(pos, size, color="red") {
+        super(pos, [], color);
+        if(!(size instanceof Vector2))
+            throw TypeError("Size of a rectangle must be an instance of vector2");
+        this.size = size;
+        this.vertices = [
+            new Vector2(this.pos.x, this.pos.y),
+            new Vector2(this.pos.x + this.size.x, this.pos.y),
+            new Vector2(this.pos.x + this.size.x, this.pos.y + this.size.y),
+            new Vector2(this.pos.x, this.pos.y + this.size.y),
+        ];
+    }
+
+};
+
+
+
+class Circle extends ShapeMixin {
+    constructor(pos, radius = 0, color = undefined) {
+        super(pos);
+        this.radius = radius;
+        this.fillStyle = color;
+    }
+
+};

@@ -9,14 +9,15 @@
 
     "network": [
         "preloader",
-        "database",
-        "scrapper"
+        "webstorage",
+        "indexdb",
+        "firebase"
     ],
 
     "window": [
         "scene",
         "canvas",
-        "game"
+        "loader"
     ],
 
     "physics": [
@@ -24,9 +25,6 @@
     ],
     
     "graphics": [
-        "shapeMixin",
-        "circle",
-        "rectangle",
-        "polygon"
+        "shape"
     ]
 }
