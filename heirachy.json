@@ -1,0 +1,29 @@
+{
+    "core": [
+        "constants",
+        "util",
+        "vector",
+        "matrices",
+        "color"
+    ],
+
+    "network": [
+        "preloader",
+        "indexdb",
+        "firebase"
+    ],
+
+    "window": [
+        "scene",
+        "canvas",
+        "loader"
+    ],
+
+    "physics": [
+        "collision"
+    ],
+    
+    "graphics": [
+        "shape"
+    ]
+}
