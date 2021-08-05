@@ -1,28 +1,103 @@
+const DEBUG = false;
+/**
+ * This function houses basic utility functions
+ * 
+ * Exports = [
+ * defaultExport 	(var)
+ * createVector  	(func)
+ * DEBUG_LOG		(func)
+ * deviceName		(func)
+ * ]
+ * 
+ *
+ * Extensions
+ * - window.requestAnimationFrame
+ * - HTML Object (css, attr, setFullScreen)
+ * - Math Object (degToRad, radToDeg, iRange, eRange, clamp)
+ * - CanvasRenderingContext2D (fillStyle, strokeStyle, polygon...)
+*/
 
-const DEBUG = false;// errors
-const INVALID_VECTOR = (msg = "Please provide an appropriate vector's type") => new CustomError("NOT_A_VECTOR", msg);const INVALID_SCENE = (msg = "Please provide an appropriate Scene/HTMLElement type") => new CustomError("NOT_A_SCENE", msg);
+
+
+
+
+
 
 const defaultExport = "This file has been included";
+const createVector = type => {	if(typeof type === "string")
+		return type === "3d" ? new Vector3() : new Vector2();
+	else if(typeof type === "object") {
+		if(type.hasOwnProperty("z"))
+			return new Vector3(type.x, type.y, type.z);
+		else return new Vector2(type.x, type.y);
+	}
+};
+
 const DEBUG_LOG = (type, msg) => {	if(DEBUG)
 		window.console[type](msg);
 };
 
-const detectDevice = () => {	// const device = window.navigator.match(/ios/ipod/i);
+
+// converts object data format to css 
+// {backgroundColor: red}	#input 
+// background-color: red	#result
+const stringToCssFormat = (string) => {	let res = "";
+	for(let i=0; i < string.length; i++) {
+		if(string[i].codePointAt() >= 65 && string[i].codePointAt() <=90) {
+			res += "-";
+			res += string[i].toLowerCase();
+			res += string[++i];
+		} else
+			res += string[i];
+	};
+	return res;
+};
+
+
+/**
+ * @todo
+ * Fix for android check
+ */
+const deviceName = () => {	const devices = [];
 	// Opera 8.0+
-// var isOpera = (!!window.opr && !!opr.addons) || !!window.opera || navigator.userAgent.indexOf('
-// OPR/') >= 0;
-// // Firefox 1.0+
-// var isFirefox = typeof InstallTrigger !== 'undefined';
-// // At least Safari 3+: "[object HTMLElementConstructor]"
-// var isSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0;
-// // Internet Explorer 6-11
-// var isIE = /*@cc_on!@*/false || !!document.documentMode;
-// // Edge 20+
-// var isEdge = !isIE && !!window.StyleMedia;
-// // Chrome 1+
-// var isChrome = !!window.chrome && !!window.chrome.webstore;
-// // Blink engine detection
-// var isBlink = (isChrome || isOpera) && !!window.CSS;
+	const isOpera = (!!window.opr && !!opr.addons) || !!window.opera || navigator.userAgent.indexOf('OPR/') >= 0;
+	devices.push(isOpera);
+	// Firefox 1.0+
+	const isFirefox = typeof InstallTrigger !== 'undefined';
+	devices.push(isFirefox);
+	// At least Safari 3+: "[object HTMLElementConstructor]"
+	const isSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0;
+	devices.push(isSafari);
+	// Internet Explorer 6-11
+	const isIE = /*@cc_on!@*/false || !!document.documentMode;
+	devices.push(isIE);
+	// Edge 20+
+	const isEdge = !isIE && !!window.StyleMedia;
+	devices.push(isEdge);
+	// Chrome 1+
+	const isChrome = !!window.chrome && !!window.chrome.webstore;
+	devices.push(isChrome);
+	// Blink engine detection
+	const isBlink = (isChrome || isOpera) && !!window.CSS;
+	devices.push(isBlink);
+	// ios
+	const isIos = false;
+	devices.push(isIos);
+	let names = [
+		"opera",
+		"firefox",
+		"safari",
+		"ie",
+		"edge",
+		"chrome",
+		"blink",
+		"ios"
+	];
+	let res = "android";
+	devices.forEach((d, i) => {
+		if(d) res = names[i];
+	});
+	return res;
 };
 
 
@@ -35,20 +110,6 @@ window.requestAnimationFrame = (function() {
         window.setTimeout(callback, 1000/60);
     }
 })();
-
-
-const stringToCssFormat = (string) => {
-	let res = "";
-	for(let i=0; i < string.length; i++) {
-		if(string[i].codePointAt() >= 65 && string[i].codePointAt() <=90) {
-			res += "-";
-			res += string[i].toLowerCase();
-			res += string[++i];
-		} else
-			res += string[i];
-	};
-	return res;
-};
 
 
 // HTML Element's extension
@@ -166,9 +227,6 @@ class CustomError extends Error {
 
 
 // Canvas 2d rendering context extension
-
-
-
 CanvasRenderingContext2D.prototype.__proto__ = {
 
 	colorStyle: undefined,
@@ -249,7 +307,6 @@ CanvasRenderingContext2D.prototype.__proto__ = {
  * ]
  */
 class VectorMixin {
-
 
     /**
      * @description create a copy of a reference vector
@@ -642,10 +699,17 @@ class Mat4x4 {
 
 Object.assign(Mat3x3, MatrixMixin(3));
 Object.assign(Mat4x4, MatrixMixin(4));
-// need this import to access Math.clamp method
+// needed to access Math.clamp
+
 
 /**
  * @description A simple color class
+ * Color exists as a rgba component where 
+ * R(red), G(green), B(blue) and A(alpha)
+ * 
+ * export class = [
+ * Color
+ * ]
  */
 class Color {
     /**
@@ -700,6 +764,7 @@ class Color {
     toString() {
         return `rgba(${this.r}, ${this.g}, ${this.b}, ${this.a})`;
     }
+
 };
 
 
@@ -719,16 +784,57 @@ Object.defineProperties(Color, {
  * Singleton Preloader class 
  * Able to 
  * -Load images, audios and open link
+ * 
+ * How it works
+ * - This program provides 4 public functions
+ * (addImages, addAudios, addUrls, sync)
+ * 
+ * function starting with "add" creates their respected object from the parameter provided
+ *  and push the objects into their  respected buffering array (images, audios, urls) 
+ * inside the preloader class.
+ * 
+ * whenever the sync method is called, this program programmatically loads the current
+ * media from the buffer (images, audios, urls) respectively and push the loaded media
+ * inside their respected array (loadedImages, ...) and reset their respected buffer to 
+ * an empty array
+ * 
+ * sync method returns a promise of a function (getImage, getAudio, getUrls) to retrieve
+ * items from the loaded media array
+ * 
+ * @author github.com/RuntimeTerror418
  */
 const Preloader = (() => {
     // current media added to buffer
-    let images = [], audios = [], urls = [];
-    // all loaded medias
-    const loadedImages = [], loadedAudios = [], loadedUrls = [];
-    // preloader object API
-    const preloader = {};
+    let images = [], 
+        audios = [], 
+        urls = [];
 
-    const printables = [];
+    // all loaded medias
+    const loadedImages = [], 
+          loadedAudios = [], 
+          loadedUrls = [];
+
+    // preloader object API
+    const preloader = {
+
+        _state: "idle",
+        _activeFile: "none",
+
+        set state(val) {
+            this._state = val;  // idle, interactive, complete
+        },
+
+        get state() { return this._state; },
+
+        set currentLoadingFile(val) {
+            this._activeFile = val;
+        },
+
+        get currentLoadingFile() { return this._activeFile },
+
+    };
+
+    const printables = ["-"];
     for(let i=65, j=0; i <= 122; i++, j++) {
         printables.push(String.fromCodePoint(i));
         printables.push(String(j));
@@ -776,7 +882,7 @@ const Preloader = (() => {
                 resolve(1);
             });
             img.addEventListener("error", () => {
-                reject("Something went wrong :( while loading " + src);
+                reject("Something went wrong :( while loading " + img.src);
             })
         });
         return promise;
@@ -789,20 +895,18 @@ const Preloader = (() => {
      * @returns {Promise}
      */
      const loadAudio = param => {
-        const ctx = new AudioContext();
-        let src = typeof param === "string" ? param : param.src;
-        let id = typeof param === "string" ? getId(param) : param.id || getId(param);
-        let promise = fetch(src).then(e => e.arrayBuffer())
-        .then(e => ctx.decodeAudioData(e)).then(e => {
-            const sound = ctx.createBufferSource();
-            sound.buffer = e;
-            sound.connect(ctx.destination);
-            sound.play = function(when = ctx.currentTime, offset=0, duration = sound.buffer.duration) {
-                sound.start(when, offset, duration);
-            };
-            sound.id = id;
-            loadedAudios.push(sound);
-            return 1;
+         let src = typeof param === "string" ? param : param.src;
+        const audio = new Audio(src);
+        audio.load();
+        audio.loop = param.loop || true;
+        let promise = new Promise((resolve, reject) => {
+            audio.addEventListener("canplaythrough", function() {
+                loadedAudios.push(audio);
+                resolve(1);
+            });
+            audio.addEventListener("error", () => {
+                reject("Something went wrong ;( while loading " + audio.src);
+            });
         });
         return promise;
     };
@@ -831,6 +935,7 @@ const Preloader = (() => {
 
 
     preloader.addImages = (...args) => {
+        preloader.state = "idle";
         args.forEach(arg => {
             if(typeof arg === "string" || typeof arg === "object") 
                 images.push(arg);
@@ -838,6 +943,7 @@ const Preloader = (() => {
     };
 
     preloader.addAudios = (...args) => {
+        preloader.state = "idle";
         args.forEach(arg => {
             if(typeof arg === "string" || typeof arg === "object") 
                 audios.push(arg);
@@ -846,6 +952,7 @@ const Preloader = (() => {
 
     // {src, id}
     preloader.addUrls = (...args) => {
+        preloader.state = "idle";
         args.forEach(arg => {
             if(typeof arg === "string" || typeof arg === "object") 
                 urls.push(arg);
@@ -859,14 +966,25 @@ const Preloader = (() => {
         let pImages = [];
         let pAudios = [];
         let pUrls = [];
-        images.forEach(src => pImages.push(loadImage(src)));
+        preloader.state = "interactive";
+        images.forEach(src =>{
+            preloader.currentLoadingFile = src;
+            pImages.push(loadImage(src));
+        });
         images = [];
-        audios.forEach(src => pAudios.push(loadAudio(src)));
+        audios.forEach(src => {
+            preloader.currentLoadingFile = src;
+            pAudios.push(loadAudio(src));
+        });
         audios = [];
-        urls.forEach(src => pUrls.push(loadUrl(src)));
+        urls.forEach(src => {
+            preloader.currentLoadingFile = src;
+            pUrls.push(loadUrl(src));
+        });
         urls = [];
         return await Promise.all([...pImages, ...pAudios, ...pUrls])
         .then(e => {
+            preloader.state = "complete";
             let res = {
                 getImage(id) {
                     if(typeof id === "number")
@@ -891,50 +1009,6 @@ const Preloader = (() => {
     return preloader;
 
 })();
-/**
- * @description Web storage mxiins
- * @param {any} type type of the storage [local, session]
- * @returns {Object} session manipulations API
- */
-const WebStorageMixin = ((type) => {
-
-    let isAvailable = true;
-    try {
-        type.setItem("caldroJS", "")
-    } catch(err) {
-        isAvailable = false;
-    };
-
-    const storage = {};
-    storage.isAvailable = isAvailable;
-
-    storage.add = (name, title) => {
-        let value = typeof title === "object" ? JSON.stringify(title) : title;
-        type.setItem(String(name), value);
-    };
-
-    storage.get = (name) => {
-        return type.getItem(name);
-    };
-
-    storage.update = (name, title) => {
-        let value = typeof title === "object" ? JSON.stringify(title) : title;
-        type.setItem(String(name), value);
-    };
-
-    storage.delete = (name) => {
-        type.removeItem(name);
-    };
-
-    storage.clear = () => {
-        type.clear();
-    };
-
-    return storage;
-
-});
-
-const LocalStorage = WebStorageMixin(window.localStorage);const SessionStorage = WebStorageMixin(window.sessionStorage);
 class IndexDB {
 };
 class Firebase {
@@ -1113,6 +1187,7 @@ class GameArea extends Scene {
         this._fpsTimeStarted = 0,
         this._fps = 0,
         this._elapsedTimeStarted = 0;
+        this.clearPreviousFrame = true;
     }
 
     set width(v) {
@@ -1144,11 +1219,19 @@ class GameArea extends Scene {
     }
 
     get deltaTime() {
-        this._deltaTime = Math.abs(this.currentTime - this._deltaTimeStarted) * 0.001;
+        this._deltaTime = Math.abs(new Date().getTime() - this._deltaTimeStarted) * 0.001;
         this._deltaTimeStarted = this.currentTime;
         if(this._deltaTime > 0.2)
             this._deltaTime = 0;
         return this._deltaTime;
+    }
+
+    getDeltaTime() {
+        let dt = Math.abs(this.currentTime - this._deltaTimeStarted) * 0.001;
+        this._deltaTimeStarted = this.currentTime;
+        if(dt > 0.2)
+            dt = 0;
+        return dt;
     }
 
     // how many time has the update function been called
@@ -1179,7 +1262,9 @@ class GameArea extends Scene {
             const animate = () => {
                 this._cycles++;
                 this.currentTime = new Date().getTime();
-                this.clear();
+                if(this.clearPreviousFrame) {
+                    this.clear();
+                }
                 this.update();
                 requestAnimationFrame(animate);
             };

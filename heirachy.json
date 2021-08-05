@@ -1,7 +1,7 @@
 {
     "core": [
         "constants",
-        "functions",
+        "util",
         "vector",
         "matrices",
         "color"
@@ -9,7 +9,6 @@
 
     "network": [
         "preloader",
-        "webstorage",
         "indexdb",
         "firebase"
     ],
