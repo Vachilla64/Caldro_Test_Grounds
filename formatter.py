@@ -2,9 +2,9 @@
 
 ** This program must be run before the final commit
 ** This program requires to structure the directory in the below format 
-base\
-    .git 
+base\ 
     src\
+        .git
         [all of caldro files on here]
 
 The purpose of this program is to automate some build files like 
@@ -35,8 +35,9 @@ SOFTWARE.
 ...................................................
 
 TODO
-- Create a single Merger 
-- delete nsModule
+- remove comment
+- parse [import/export] multiline
+
 """
 
 
@@ -124,7 +125,7 @@ class CaldroFileFormatter:
                         for lines in contents:
                             stripped = lines.strip()
                             currentText = lines
-                            if stripped.startswith("import"):
+                            if stripped.startswith("import") or stripped.startswith("//"):
                                 continue
                             elif stripped.startswith("export"):
                                 broken = stripped.split(" ")
@@ -132,6 +133,8 @@ class CaldroFileFormatter:
                                     continue
                                 else:
                                     currentText = " ".join(broken[1:])
+                            elif stripped.startswith("/*"):
+                                pass
                             f.write(currentText)
                         f.write("\n")    
                     f.close()

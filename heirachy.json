@@ -1,7 +1,7 @@
 {
     "core": [
-        "constants",
         "util",
+        "constants",
         "vector",
         "matrices",
         "color"
@@ -14,9 +14,9 @@
     ],
 
     "window": [
-        "scene",
-        "canvas",
-        "loader"
+        "container",
+        "loader",
+        "gameArea"
     ],
 
     "physics": [

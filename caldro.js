@@ -1,4 +1,3 @@
-const DEBUG = false;
 /**
  * This function houses basic utility functions
  * 
@@ -21,9 +20,6 @@ const DEBUG = false;
 
 
 
-
-
-const defaultExport = "This file has been included";
 const createVector = type => {	if(typeof type === "string")
 		return type === "3d" ? new Vector3() : new Vector2();
 	else if(typeof type === "object") {
@@ -33,14 +29,39 @@ const createVector = type => {	if(typeof type === "string")
 	}
 };
 
+
+/**
+ * Define interface of a type
+ * An interface is what a given object is expected to have, for example 
+ * Vector2 must have [x, y]
+ * Vector3 must have [x, y, z]
+ * Color must have [r, g, b and/or a]
+ * 
+ * Vector3 is a proper interface to vector2 
+ * Vector2 cannot be an interface to vector3
+ */
+function _defineInterface(...args) {	const res = {};
+	args.forEach(i => res[i] = null);
+	return Object.freeze(res);
+}
+
+
+/**
+ * Check if obj is a proper interface to interface
+ */
+function _hasImplementInterface(obj, _interface){	return Object.keys(_interface).every(i => obj.hasOwnProperty(i));
+};
+
+
+function decorate(obj, decorator) {	Object.assign(obj, decorator);
+};
+
+
 const DEBUG_LOG = (type, msg) => {	if(DEBUG)
 		window.console[type](msg);
 };
 
 
-// converts object data format to css 
-// {backgroundColor: red}	#input 
-// background-color: red	#result
 const stringToCssFormat = (string) => {	let res = "";
 	for(let i=0; i < string.length; i++) {
 		if(string[i].codePointAt() >= 65 && string[i].codePointAt() <=90) {
@@ -53,34 +74,40 @@ const stringToCssFormat = (string) => {	let res = "";
 	return res;
 };
 
+const splitCSSValue = val => {	let res = ["", ""];
+	let i = 0;
+	let sVal = String(val);
+	while(i < sVal.length) {
+		let current = sVal[i];
+		if(isNaN(current))
+			res[1] += current;
+		else if(!isNaN(current))
+			res[0] += current;
+		i++;
+	};
+	return res;
+};
+
 
 /**
  * @todo
  * Fix for android check
  */
 const deviceName = () => {	const devices = [];
-	// Opera 8.0+
 	const isOpera = (!!window.opr && !!opr.addons) || !!window.opera || navigator.userAgent.indexOf('OPR/') >= 0;
 	devices.push(isOpera);
-	// Firefox 1.0+
 	const isFirefox = typeof InstallTrigger !== 'undefined';
 	devices.push(isFirefox);
-	// At least Safari 3+: "[object HTMLElementConstructor]"
 	const isSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0;
 	devices.push(isSafari);
-	// Internet Explorer 6-11
 	const isIE = /*@cc_on!@*/false || !!document.documentMode;
 	devices.push(isIE);
-	// Edge 20+
 	const isEdge = !isIE && !!window.StyleMedia;
 	devices.push(isEdge);
-	// Chrome 1+
 	const isChrome = !!window.chrome && !!window.chrome.webstore;
 	devices.push(isChrome);
-	// Blink engine detection
 	const isBlink = (isChrome || isOpera) && !!window.CSS;
 	devices.push(isBlink);
-	// ios
 	const isIos = false;
 	devices.push(isIos);
 	let names = [
@@ -101,7 +128,6 @@ const deviceName = () => {	const devices = [];
 };
 
 
-// Cross-Platform request Animation Frame
 window.requestAnimationFrame = (function() {
     return window.requestAnimationFrame || 
     window.webkitRequestAnimationFrame ||
@@ -112,7 +138,6 @@ window.requestAnimationFrame = (function() {
 })();
 
 
-// HTML Element's extension
 Object.defineProperties(HTMLElement.prototype, {
    
     css: {
@@ -131,6 +156,13 @@ Object.defineProperties(HTMLElement.prototype, {
         configurable: true
 	},
 
+	getCss: {
+		value: function(val) {
+			return this.style.getPropertyValue(val);
+		},
+		configurable: true
+	},
+
 	attr: {
 		value: function(attrs) {
 			if(!attrs instanceof Object) 
@@ -140,31 +172,12 @@ Object.defineProperties(HTMLElement.prototype, {
 			}
 		},
         configurable: true
-	},
-
-	setFullScreen: {
-		value: function(eventListener) {
-			let _this = this;
-			this.addEventListener(eventListener, () => {
-				if (_this.requestFullscreen) 
-					_this.requestFullscreen();
-				else if (_this.mozRequestFullScreen) 
-					_this.mozRequestFullScreen();
-				else if (_this.webkitRequestFullscreen) 
-					_this.webkitRequestFullscreen();
-				else if (_this.msRequestFullscreen) 
-					_this.msRequestFullscreen();
-			});
-		},
-		configurable: false,
-		writable: false
 	}
     
 });
 
 
 
-// Math Object Extension
 Object.defineProperties(Math, {
 
 	degToRad: {
@@ -226,7 +239,6 @@ class CustomError extends Error {
 
 
 
-// Canvas 2d rendering context extension
 CanvasRenderingContext2D.prototype.__proto__ = {
 
 	colorStyle: undefined,
@@ -293,6 +305,22 @@ CanvasRenderingContext2D.prototype.__proto__ = {
 	}
 
 };
+
+
+const DEBUG = false;
+const Interface = Object.freeze({
+    point: _defineInterface("x", "y"),
+    circle: _defineInterface("pos", "radius"),
+    wedge: _defineInterface("pos", "radius", "startAngle", "endAngle"),
+    arc: _defineInterface("pos", "radius", "startAngle", "endAngle", "innerRadius", "outerRadius"),
+    rect: _defineInterface("pos", "size")
+
+});
+
+const COLOR_I = _defineInterface("r", "g", "b", "a");const VECTOR2_I = _defineInterface("x", "y");const VECTOR3_I = _defineInterface("x", "y", "z");
+const CIRCLE_I = _defineInterface("pos", "radius");
+
+
 /**
  * Vector Mixin class:
  * Contains common operations for each vector's type [2d, 3d]
@@ -482,8 +510,6 @@ const MatrixMixin = ((length) => {
 
     mixins.type = length;
 
-    // check if two matrices are equal by comparing 
-    // their roow and column length
     const isEqual = (m1, m2) => {
         if (m1.length === m2.length && m2[0].length === m1[0].length)
             return 0;
@@ -492,7 +518,6 @@ const MatrixMixin = ((length) => {
     };
 
 
-    // initialise a length matrix
     mixins.create = (...arg) => {
         let res = [];
         for(let i=0; i < length; i++) {
@@ -528,7 +553,6 @@ const MatrixMixin = ((length) => {
     };
 
 
-    // multiply a matrix by a number
     mixins.multiplyScalar = (mat, s) => {
         let res = mixins.create();
         for(let i=0; i < length; i++) {
@@ -572,7 +596,6 @@ const MatrixMixin = ((length) => {
     };
 
 
-    // multiply a matrix by a matrix
     mixins.multiplyMatrix = (mat1, mat2) => {
         isEqual(mat1, mat2);
         let m = mixins.create();
@@ -593,7 +616,6 @@ const MatrixMixin = ((length) => {
     };
 
 
-    // A Transpose is where we swap entries across the main diagonal (rows become columns)
     mixins.transpose = (mat) => {
         let m = mixins.create();
         for(let i=0; i < length; i++) {
@@ -605,7 +627,6 @@ const MatrixMixin = ((length) => {
     };
 
 
-    // An Identity Matrix has 1s on the main diagonal and 0s everywhere else
     mixins.identity = () => {
         let m = mixins.create();
         for(let i=0; i < length; i++) 
@@ -699,7 +720,6 @@ class Mat4x4 {
 
 Object.assign(Mat3x3, MatrixMixin(3));
 Object.assign(Mat4x4, MatrixMixin(4));
-// needed to access Math.clamp
 
 
 /**
@@ -749,7 +769,7 @@ class Color {
      * @returns {Color} subtractive mixins of two color
      */
     mix(color) {
-        if(!(color instanceof Color)) {
+        if(!(color instanceof Color) && !(color._)) {
             console.error("Color mix expects an instance of Color Object")
             return;
         }
@@ -804,17 +824,14 @@ Object.defineProperties(Color, {
  * @author github.com/RuntimeTerror418
  */
 const Preloader = (() => {
-    // current media added to buffer
     let images = [], 
         audios = [], 
         urls = [];
 
-    // all loaded medias
     const loadedImages = [], 
           loadedAudios = [], 
           loadedUrls = [];
 
-    // preloader object API
     const preloader = {
 
         _state: "idle",
@@ -950,7 +967,6 @@ const Preloader = (() => {
         }); 
     };
 
-    // {src, id}
     preloader.addUrls = (...args) => {
         preloader.state = "idle";
         args.forEach(arg => {
@@ -960,8 +976,6 @@ const Preloader = (() => {
     };
 
 
-    // call this function to start preloading every objects in 
-    // their respected buffer
     preloader.sync = async function(){
         let pImages = [];
         let pAudios = [];
@@ -1015,103 +1029,90 @@ class Firebase {
     
 
 };
+
 /**
+ * @exports 
+ * Scene
+ * DOMElement
+ */
+
+/**
+ * Scene is a container type and the base for all the 
+ * game area... Every other html tag/element should 
+ * be added directly or indirectly to this tag
+ * 
+ * scene is always appended to the body tag by default
+ * 
+ * Sample 
+ * let a = new Scene("100px", "200px");
+ * a.orientation = Scene.LandScape;
+ * a.add(some component)
+ * 
+ * [NOTE] scene can only add components which are valid HTMLElement 
+ * or an instance of DOMElement
+ * 
  * @todo
- * Add orientation mode for landscape and offset fixin
- */
-
-/**
- * @description append scene element to parent element
- * @param {HTMLElement | Scene} scene Element
- * @param {HTMLElement | Scene} parent Element
- */
-const appendSceneToParent = (scene, parent) => {
-    if(parent instanceof HTMLElement) {
-        parent.appendChild(scene);
-    }
-    else if(parent instanceof Scene) {
-        parent.element.appendChild(scene);
-    }
-};
-
-
-/**
- * Scene class is suitable for creating HTML Element
- * If parent element is specified, the scene silently 
- * wait for DOM to be loaded and append it's element to the parent element
+ *  - Able to append scene to other tag
+ *  - Make orientation switch perfect everyWhere
  */
 class Scene {
-    /**
-     * 
-     * @param {String} type type of the element to be created by tag
-     * @param {HTMLElement | String | null} parent reference to the parent element
-     * @param {String} w width of the element in css format 
-     * @param {String} h height of the element in css format
-     */
-    constructor(type, parent, w = "300px", h = "300px") {
-        this.type = type;
-        this.element = document.createElement(this.type);
-        this._parentElement = parent;
-        this.parentElement = parent;
-        this._width = w;
-        this._height = h;
-        this._parentElementInitialised = 0;
-        this._orientation = "potrait";
-        this._id = "scene@"+Math.random() * parseInt(Math.random() * 5000);
-        this._className = undefined;
-        this.css({width:w, height: h});
+    constructor(w, h) {
+        this.element = document.createElement("section");
+        this.element.className = "caldro-dom-scene";
+        this.element.id = `caldro-scene-${Scene.id}`;
+        this.element.style.backgroundColor = "#000";
+        this._rotation = 0;     // use when switching orientation modes
+        this.width = w || "100vw";
+        this.height = h || "100vh";
+
         if(document.readyState === "complete") {
-            appendSceneToParent(this.element, this.parentElement);
+            document.body.appendChild(this.element);
         } else {
             window.addEventListener("load", () => {
-                appendSceneToParent(this.element, this.parentElement);
+                document.body.appendChild(this.element);
             });
-        }
+        };
+        Scene.id++;
     }
 
-    set parentElement(parent) {
-        if(!this._parentElementInitialised) {
-            this._parentElement = parent;
-            this._parentElementInitialised++;
-        } else {
-            if(!(parent instanceof HTMLElement) && !(parent instanceof Scene))
-                throw TypeError("Parent Element must be an instance of Scene | HTMLElement");
-            this._parentElement = parent instanceof Scene ? parent.element : parent;
-            this._parentElement.append(this.element);
-        }
-    }
+    set width(w) { this.element.css({width: w}); }
 
-    get parentElement() { 
-        if(this._parentElement instanceof HTMLElement)
-            return this._parentElement;
-        else if(this._parentElement instanceof Scene)
-            return this._parentElement.element;
-    }
+    set height(h) { this.element.css({height: h}); }
 
-    set className(val) { this._className = val; }
+    get width() { return this.element.getCss("width"); }
 
-    get className() { return this._className; }
+    get height() { return this.element.getCss("height"); }
 
-    set id(val) {this._id = val; }
-
-    get id() { return this.id; }
-
-    set orientation(val) {
-        this._orientation = val;
-        if(this._orientation === Scene.Portrait) {
-            DEBUG_LOG("log", Scene.Portrait);
-            DEBUG_LOG("log", "Portait Method is not implemented yet");
-        } else if(this._orientation === Scene.LandScape) {
-            DEBUG_LOG("log", Scene.LandScape);
-            this.css({
+    set orientation(type) {
+        this._orientation = type;
+        let oldPositionCSS = this.element.getCss("position");
+        let oldHeightCSS = this.element.getCss("height");
+        let oldWidthCSS = this.element.getCss("width");
+        let oldHeight = splitCSSValue(oldHeightCSS);
+        let oldWidth = splitCSSValue(oldWidthCSS);
+        if(this._orientation === Scene.LandScape && this._rotation === 0) {
+            this._rotation = 90;
+            this.element.css({
+                width: oldHeightCSS,
+                height: oldWidthCSS,
                 transformOrigin: "0 0",
-                transform: "rotate(90deg)",
-                position: this.getStyle("position") === "<empty string>" ? 
-                    "absolute" : this.getStyle("position"),
-                left: `${this.getStyle("height")}`
+                transform: `rotate(90deg)`,
+                position: Boolean(oldPositionCSS) ? oldPositionCSS : "absolute",
+                left: `${oldWidth[0] + oldWidth[1]}`,
             });
-        } else {
-            console.warn(`Cannot set orientation to an unknown type: ${val}`);
+        } else if(this._orientation === Scene.Portrait && this._rotation === 90) {
+            this._rotation = 0;
+            this.element.css({
+                width: oldHeightCSS,
+                height: oldWidthCSS,
+                transformOrigin: "0 0",
+                transform: `rotate(0deg)`,
+                position: "absolute",
+                left: "0px"
+            });
+        } else if(this._orientation !== Scene.Portrait && this._orientation != Scene.LandScape){
+            DEBUG_LOG("log", 
+            `Cannot set orientation to an unknown and/or unrotated scene: ${this._orientation}`);
             DEBUG_LOG("table", {
                 "Scene.Portrait": Scene.Portrait,
                 "Scene.LandScape": Scene.LandScape,
@@ -1119,125 +1120,265 @@ class Scene {
         }
     }
 
-    getStyle(props) {
-        return this.element.style.getPropertyValue(props);
+    add(element) {
+        if(!(element instanceof HTMLElement) && !(element instanceof DOMElement))
+            throw TypeError("Function expects an instance of HTMLElement | DOMElement");
+        let child;
+        if(element instanceof DOMElement) {
+            child = element.element;
+        } else {
+            child = element;
+        };
+        element.scene = this;
+        if(element.parentElement === null) 
+            element.parentElement = this.element;
+        else
+            this.element.appendChild(child);
     }
 
-    get orientation() { return this._orientation; };
-
-    set width(w) {
-        this._width = w;
-        this.element.style.width = this._width;
-    }
-
-    get width() { return this._width; }
-
-    set height(h) {
-        this.height = h;
-        this.element.style.height = this._height;
-    }
-
-    get height() { return this._height; }
-
-    css(styles) { this.element.css(styles); }
-
-    attr(_attrib) { this.element.attr(_attrib); }
-
-    addEventListener(type, func) { this.element.addEventListener(type, func); }
-
-    setFullScreen(eventListener) {
-        this.element.setFullScreen(eventListener);
+    setFullScreen(eventListener = "click") {
+        let _this = this.element;
+		this.addEventListener(eventListener, () => {
+			if (_this.requestFullscreen) 
+				_this.requestFullscreen();
+			else if (_this.mozRequestFullScreen) 
+				_this.mozRequestFullScreen();
+			else if (_this.webkitRequestFullscreen) 
+				_this.webkitRequestFullscreen();
+			else if (_this.msRequestFullscreen) 
+				_this.msRequestFullscreen();
+		});
         DEBUG_LOG("log", "setFullScreen expects an event listener type as argument: onclick...");
     }
-
 };
 
 
 Object.defineProperties(Scene, {
+    id: {
+        value: 1, 
+        writable: true,
+        readable: true, 
+        configurable: true
+    },
     LandScape: {
-        value: "Rotate the scene by 90deg",
+        value: "Rotate this Scene by 90deg",
         configurable: false,
     }, 
     Portrait: {
-        value: "Rotate the scene by either 0deg or 90deg",
+        value: "No rotation applied",
         configurable: false
     }
 });
 
 
+
 /**
- * GameArea is like an extension to HTMLCanvasElement 
- * it inherit from scene
+ * DOMElement creates an HTML Tag...
+ * By default it will not append the created tag to anything 
+ * untill you explicity give the "add" instruction... or add it to a scene
+ * 
+ * let a = new DOMElement("section");
+ * Scene.add(a);   /// 
+ * a.add(children)...
  */
-class GameArea extends Scene {
-    /**
-     * 
-     * @param {HTMLElement | Scene | null} parent Where the element should be appended
-     * @param {Number} w width of the canvas
-     * @param {Number} h height of the canvas
-     */
-    constructor(parent, w = 300, h = 150) {
-        super("canvas", parent);
-        this.context2d = this.element.getContext("2d");
+class DOMElement {
+    constructor(type) {
+        this.type = type;
+        this.element = document.createElement(this.type);
+        this.scene = null;
+        this.id = "cladro-element-" + parseInt(Math.random()* 5000);
+        this.className = "caldro-dom-element";
+    }
+
+    set id(s) {
+        this._id = s;
+        this.element.id = this._id;
+    }
+
+    get id() { return this._id }
+
+    set className(s) {
+        this._className = s;
+        this.element.className += " " + this._className;
+    }
+
+    get className() { return this.element.className; }
+
+    set width(w) { this.element.css({width: w}); }
+
+    set height(h) { this.element.css({height: h}); }
+
+    get width() { return this.element.getCss("width"); }
+
+    get height() { return this.element.getCss("height"); }
+
+
+    set parentElement(element) {
+        if(!(element instanceof HTMLElement) && !(element instanceof DOMElement)
+            && !(element instanceof Scene))
+            throw TypeError("Function expects an instance of HTMLElement | DOMElement | Scene");
+        this.scene = element instanceof Scene ? element : element.scene;
+        let par = element instanceof DOMElement || element instanceof Scene ? 
+            element.element : element;
+        this._parentElement = par;
+        par.appendChild(this.element);
+    }
+
+
+    get parentElement() {
+        return this._parentElement;
+    }
+
+    add(element) {
+        if(!(element instanceof HTMLElement) && !(element instanceof DOMElement))
+            throw TypeError("Function expects an instance of HTMLElement | DOMElement | Scene");
+        let par = element instanceof DOMElement ?  element.element : element;
+        this.element.appendChild(par);
+    }
+
+    css(styles) { this.element.css(styles); }
+
+    getStyle(props) { return this.element.style.getPropertyValue(props); }
+
+};
+
+/**
+ * @todo 
+ * customize icon color
+ */
+const Loader = (() => {
+    const section = document.createElement("section");
+    const div = document.createElement("div");
+    const style = document.createElement("style");
+
+    div.id = "caldro-loader-icon";
+    section.id = "caldro-loader";
+    section.className = "caldro-loader";
+
+    const api = {
+
+        set color1(v) { 
+            section.style.backgroundColor = v instanceof Color ? v.toString() : v;
+        },
+        set color2(v) { 
+        }
+
+    };
+
+    api.color1 = "rgba(0, 0, 0, .5)";
+    api.color2 = "teal";
+
+    style.innerHTML = `
+    #caldro-loader-icon {
+        width: 100px;
+        height: 25px;
+        border-top: 10px dotted teal;
+        position: absolute;
+        left: calc(50vw - 50px);
+        top: calc(50vh - 12px);
+        animation: spin 2s linear infinite
+    }
+    @keyframes spin {
+        from {
+            border-top: 10px dotted teal;
+        } 
+        to {
+            border-top: 5px dotted teal;
+        }
+    }`;
+
+    function init() {
+        section.css({
+            width: "100vw",
+            height: "100vh",
+            backgroundColor: api.color1,
+            position: "absolute",
+            zIndex: "9999999"
+        });
+        document.body.appendChild(style);
+        section.appendChild(div);
+        document.body.appendChild(section);
+    };
+
+    api.css = function(styles) {
+        section.css(styles);
+    };
+
+    api.hide = function() {
+        section.style.display = "none";
+    };
+
+    api.show = function() {
+        section.style.display = "block";
+    };
+
+    if(document.readyState === "complete")
+        init();
+    else {
+        window.addEventListener("load", function() {
+            init();
+        });
+    }
+
+    api.hide();
+
+    return api;
+})();
+
+/**
+ * Inherited from DOMElement 
+ * - Creates a canvas element 
+ * width / height must be an integer cos they're represented in pixels
+ * Any modification to use css styling on the width and height may 
+ * result into a distorted canvas 
+ * 
+ * @static Dynamic -> says canvas should run on RAF
+ * @static Static -> opposite to Dynamic
+ * 
+ * Sample
+ * const a = new GameArea();
+ * a.width = innerWidth;
+ * a.height = innerHeight;
+ * a.update = function(t) {
+ *      this.clear(x, y, w, h);
+ *      this.context2d.fillStyle = new Color();
+ *      this.context2d.fillRect(0, 0, 100, 100);
+ * };
+ * a.mainLoop(GameArea.Static);
+ */
+class GameArea extends DOMElement {
+    constructor(w = 300, h = 150) {
+        super("canvas");
         this.width = w;
         this.height = h;
-        this._cycles = 0;
-        this._deltaTimeStarted = 0, 
-        this._deltaTime = 0,
-        this._fpsTimeStarted = 0,
-        this._fps = 0,
-        this._elapsedTimeStarted = 0;
-        this.clearPreviousFrame = true;
+        this.context2d = this.element.getContext("2d");
+        this.time = {}; // cycles, deltaTime, fps, elapsedTime -> passed into update function
     }
 
-    set width(v) {
-        this.element.width = v;
-        this.element.style.setProperty("width", `${v}px`);
+    set width(w) {
+        if(typeof w === "number") {
+            this.element.width = w;
+            this.element.css({width: `${w}px`});
+        } else 
+            console.error("GameArea width must be an integer represented per pixels");
     }
 
-    set height(v) {
-        this.element.height = v;
-        this.element.style.setProperty("height", `${v}px`);
+    set height(h) {
+        if(typeof h === "number") {
+            this.element.height = h;
+            this.element.css({height: `${h}px`});
+        } else 
+            console.error("GameArea height must be an integer represented per pixels");
     }
 
-    get width() { return this.element.width; }
+    get width() { return this.element.getCss("width"); }
 
-    get height() { return this.element.height; }
+    get height() { return this.element.getCss("height"); }
 
-    set clearColor(val) { this._clearColor = val; }
+    set clearColor(col) { this._clearColor = col }
 
     get clearColor() { return this._clearColor; }
 
-    get elapsedTime() {
-        return new Date().getTime() - this._elapsedTimeStarted;
-    }
-
-    get fps() {
-        this._fps = 1000 / (this.currentTime - this._fpsTimeStarted);
-        this._fpsTimeStarted = this.currentTime;
-        return this._fps;            
-    }
-
-    get deltaTime() {
-        this._deltaTime = Math.abs(new Date().getTime() - this._deltaTimeStarted) * 0.001;
-        this._deltaTimeStarted = this.currentTime;
-        if(this._deltaTime > 0.2)
-            this._deltaTime = 0;
-        return this._deltaTime;
-    }
-
-    getDeltaTime() {
-        let dt = Math.abs(this.currentTime - this._deltaTimeStarted) * 0.001;
-        this._deltaTimeStarted = this.currentTime;
-        if(dt > 0.2)
-            dt = 0;
-        return dt;
-    }
-
-    // how many time has the update function been called
-    get cycles() { return this._cycles; }
-
-    // if the clearColor was undefined, it clears the specified region in transparency
     clear(x1, y1, x2, y2) {
         let x = x1 || 0;
         let y = y1 || 0;
@@ -1251,51 +1392,52 @@ class GameArea extends Scene {
         }
     }
 
-    mainLoop(dynamic) {
+
+    mainLoop(dynamic = GameArea.Static) {
         if(!(typeof this.update === "function"))
-            throw new Error("Canvas Must define a virtual update method before calling mainloop");
-        this._fpsTimeStarted = new Date().getTime();
-        this._deltaTimeStarted = new Date().getTime();
-        this._elapsedTimeStarted = new Date().getTime();
+            throw new Error("Canvas Must define an update method before calling mainloop");
+
         if(dynamic === GameArea.Dynamic) {
             DEBUG_LOG("log", "GameArea starts with a gameLoop");
+
+            let cycles = 0;
+            let elapsedTimeStarted = new Date().getTime();
+            let fpsTimeStarted = new Date().getTime();
+            let deltaTimeStarted = new Date().getTime();
+
             const animate = () => {
-                this._cycles++;
-                this.currentTime = new Date().getTime();
-                if(this.clearPreviousFrame) {
-                    this.clear();
-                }
-                this.update();
+                this.time.cycles = ++cycles;
+                this.time.currentTime = new Date().getTime();
+                this.time.elapsedTime = this.time.currentTime - elapsedTimeStarted;
+                this.time.fps = 1000 / (performance.now() - fpsTimeStarted);
+                fpsTimeStarted = performance.now();
+                this.time.deltaTime = Math.abs(this.time.currentTime - deltaTimeStarted) * 0.001;
+                deltaTimeStarted = this.time.currentTime;
+
+                if(this.time.deltaTime > 0.2) this.time.deltaTime = 0;
+
+                this.update(this.time);
                 requestAnimationFrame(animate);
             };
             requestAnimationFrame(animate);
         } else if(dynamic === GameArea.Static) {
             DEBUG_LOG("log", "GameArea starts with no gameLoop");
-            this.update();
+            this.update({});
         }
         else {
             console.warn(`MainLoop starting in a static mode because "mode: ${dynamic}" is unknown`);
-            this.update();
+            this.update({});
             DEBUG_LOG("table", {
                 "GameArea.Static": GameArea.Static,
                 "GameArea.Dynamic": GameArea.Dynamic
             });
         }
+        
     }
-
 };
 
 
-
 Object.defineProperties(GameArea, {
-    LandScape: {
-        value: "Rotate the scene by 90deg",
-        configurable: false,
-    }, 
-    Portrait: {
-        value: "Rotate the scene by either 0deg or 90deg",
-        configurable: false
-    },
     Static: {
         value: "Run update function without RAF",
         configurable: false,
@@ -1307,72 +1449,114 @@ Object.defineProperties(GameArea, {
 });
 
 
-class Loader extends Scene {
-    constructor(parent = document.body, bgColor="#fff", color="teal") {
-        super("div", parent, `${window.innerWidth}px`, `${window.innerHeight}px`);
-        this.id = "caldro@loader";
-        this.hasLoaded = Symbol("Single loader");
-        if(!(Loader.loaded === this.hasLoaded.toString())) 
-            Loader.loaded = this.hasLoaded.toString();
-        else 
-            throw new Error("You can only make a single instance of this class");
-        
-        let color1 = bgColor instanceof Color ? bgColor.toString() : bgColor;
-        let color2 = color instanceof Color ? color.toString() : color;
-        this.css({backgroundColor: color1});
-        let div = document.createElement("div");
-        div.id = "caldro_loader";
-        this.element.appendChild(div);
-        let style = document.createElement("style");
-        style.innerHTML = `
-        #caldro_loader {
-            width: 100px;
-            height: 25px;
-            border-top: 10px dotted ${color2};
-            position: absolute;
-            left: calc(50vw - 50px);
-            top: calc(50vh - 12px);
-            animation: spin 2s linear infinite
-        }
-        @keyframes spin {
-            from {
-                border-top: 10px dotted teal;
-            } 
-            to {
-                border-top: 5px dotted teal;
-            }
-        }`;
-        document.body.appendChild(style);
-    }
-
-    hide() {
-        this.element.display = "none";
-    }
-
-    show() {
-        this.element.display = "block";
-    }
-
-};
-
-Object.defineProperties(Loader, {
-    loaded: {
-        value: false,
-        configurable: false,
-        writable: true
-    }
-});
 class Collision {
-    static AABB() {
+
+    static circTocirc(c1, c2) {
+        if(!(_hasImplementInterface(c1, Interface.circle)) || 
+            !(_hasImplementInterface(c2, Interface.circle)))
+            throw TypeError("Circle Object Must define the properties [pos, radius]");
+        let diffX = c2.pos.x - c1.pos.x;
+        let diffY = c2.pos.y - c1.pos.y;
+        let diffZ = c2.pos.z - c1.pos.z || 0;
+        return Math.hypot(diffX, diffY, diffZ) < (c1.radius + c2.radius);
+    }
+
+    static rectTorect(r1, r2) {
+        if(!(_hasImplementInterface(r1, Interface.rect)) || 
+            !(_hasImplementInterface(r2, Interface.rect)))
+            throw TypeError("Rectangle Object Must define the properties [pos, size]");
+        return r1.pos.x < r2.pos.x + r2.size.x  && r1.pos.x + r1.size.x > r2.pos.x && 
+        r1.pos.y < r2.pos.y + r2.size.y  && r1.pos.y + r1.size.y > r2.pos.y
+    }
+
+    static circToRect(circle, rect) {
+        if(!(_hasImplementInterface(rect, Interface.rect)))
+            throw TypeError("Rectangle Object Must define the properties [pos, size");
+        if(!(_hasImplementInterface(circle, Interface.circle)))
+            throw TypeError("Circle Object Must define the properties [pos, radius]");
+        let diffX = Math.abs(circle.pos.x - ( rect.pos.x + rect.size.x/2 ) );
+        let diffY = Math.abs( circle.pos.y - ( rect.pos.y + rect.size.y/2 ) );
+        if( diffX > circle.radius + rect.size.x / 2 ) return false;
+        if( diffY > circle.radius + rect.size.y / 2 ) return false; 
+        if( diffX <= rect.size.x ) return true;
+        if( diffY <= rect.size.y ) return true;
+        diffX = diffX - rect.size.x;
+        diffY = diffY - rect.size.y;
+        return diffX * diffX + diffY * diffY <= circle.radius * circle.radius;
+    }
+
+    static isPointInWedge(point, wedge) {
+        if(!(_hasImplementInterface(point, Interface.point))) 
+            throw TypeError("Point Object Must define the properties [x, y]");
+        if(!(_hasImplementInterface(wedge, Interface.wedge))) 
+            throw TypeError("Wedge Object Must define the properties [pos, radius, startAngle, endAngle]");
+        const PI2 = Math.PI * 2;
+        let diffX = point.x - wedge.pos.x;
+        let diffY = point.y - wedge.pos.y;
+        let r2 = wedge.radius * wedge.radius;
+        if( diffX * diffX + diffY * diffY > r2 ) return(false);
+        let angle = ( Math.atan2( diffY, diffX) + PI2) % PI2;
+        return angle >= wedge.startAngle && angle <= wedge.endAngle;
+    }
+
+    static isPointInCirc(point, circle) {
+        if(!(_hasImplementInterface(point, Interface.point))) 
+            throw TypeError("Point Object Must define the properties [x, y]");
+        if(!(_hasImplementInterface(circle, Interface.circle))) 
+            throw TypeError("Circle Object Must define the properties [pos, radius]");
+        let diffX = point.x - circle.pos.x;
+        let diffY = point.y - circle.pos.y;
+        return diffX * diffX + diffY * diffY < circle.radius * circle.radius;
+    }
+
+    static isPointInRect(point, rect) {
+        if(!(_hasImplementInterface(point, Interface.point))) 
+            throw TypeError("Point Object Must define the properties [x, y]");
+        if(!(_hasImplementInterface(rect, Interface.rect))) 
+            throw TypeError("Rectangle Object Must define the properties [pos, size]");
+        return point.x > rect.pos.x && point.x < rect.pos.x + rect.size.x && 
+        point.y > rect.size.y && point.y < rect.pos.y + rect.size.y;
+    }
+
+    static isPointInArc(point, arc) {
+        if(!(_hasImplementInterface(point, Interface.point))) 
+            throw TypeError("Point Object Must define the properties [x, y]");
+        if(!(_hasImplementInterface(arc, Interface.wedge))) 
+            throw TypeError("Arc Object Must define the properties [pos, radius, innerRadius, outerRadius, startAngle, endAngle]");
+        let diffX = point.x - arc.pos.x;
+        let diffY = point.y - arc.pos.y;
+        let dxy = diffX * diffX + diffY * diffY;
+        let rrOuter = arc.outerRadius * arc.outerRadius;
+        let rrInner = arc.innerRadius * arc.innerRadius;
+        if ( dxy < rrInner || dxy > rrOuter) return(false);
+        let angle = (Math.atan2(diffY, diffX) + PI2) % PI2;
+        return angle >= arc.startAngle && angle <= arc.endAngle;
+    }
+
+    static lineSegmentIntercept(l1, l2) {
 
     }
 
-    static SAT() {
-        
+    static lineSegmentInterceptPoint(l1, l2) {
+
     }
 
-    static Tiled() {
-        
+    static lineSegmentToCirc(l, c) {
+
+    }
+
+    static lineSegmentToRect(l, r) {
+
+    }
+
+
+    static convexPolygon(p1, p2) {
+
+    }
+
+
+    static polygon(p1, p2) {
+
     }
 
 };

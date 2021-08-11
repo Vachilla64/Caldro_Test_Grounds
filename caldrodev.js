@@ -35,6 +35,7 @@ export {Vector2, Vector3} from "./lib/core/vector.js";
 export {Mat3x3, Mat4x4} from "./lib/core/matrices.js";
 export {Color} from "./lib/core/color.js";
 export * as util from "./lib/core/util.js";
+export {Interface} from "./lib/core/constants.js";
 
 
 // network modules
@@ -44,14 +45,17 @@ export {Firebase} from "./lib/network/firebase.js";
 
 
 // window
-export {Scene} from "./lib/window/scene.js";
-export {GameArea} from "./lib/window/canvas.js";
+export {
+    Scene, 
+    DOMElement
+} from "./lib/window/container.js";
+export {GameArea} from "./lib/window/gameArea.js";
 export {Loader} from "./lib/window/loader.js";
-export {Controller} from "./lib/window/controller.js";
+// export {Controller} from "./lib/window/controller.js";
 
 
 // physics
-
+export {Collision} from "./lib/physics/collision.js";
 
 // graphics
 export * as Shape from "./lib/graphics/shape.js";
