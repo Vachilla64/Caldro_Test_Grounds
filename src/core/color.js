@@ -1,24 +1,35 @@
-// needed to access Math.clamp
+// needed for Math.clamp
 import "../core/util.js";
 
 
 /**
- * @description A simple color class
- * Color exists as a rgba component where 
- * R(red), G(green), B(blue) and A(alpha)
+ * An intuitive class to manipulate rgba color value
+ * @class
+ * @property {Color} Red - An opaque red
+ * @property {Color} Orange - An opaque orange
+ * @property {Color} Yellow - An opaque yellow
+ * @property {Color} Indigo - An opaque indigo
+ * @property {Color} Blue - An opaque blue
+ * @property {Color} Violet - An opaque violet
+ * @property {Color} Black - An opaque black
+ * @property {Color} White - An opaque white
+ * @property {Color} Transparent - An opaque transparent
  * 
- * export class = [
- * Color
- * ]
+ * @todo define other color property
  */
 export class Color {
 
     /**
-     * @description RGBA Constructor
-     * @param {Number} r red ranges from 0 - 255
-     * @param {Number} g green ranges from 0 - 255
-     * @param {Number} b blue from 0 - 255
-     * @param {Number} a alpha ranges from 0 -1
+     * @constructor
+     * @default r 0
+     * @default g 0
+     * @default b 0
+     * @default a 1
+     * @param {number} r red ranges from 0 - 255
+     * @param {number} g green ranges from 0 - 255
+     * @param {number} b blue from 0 - 255
+     * @param {number} a alpha ranges from 0 -1
+     * creates an instance of a color. 
      */
     constructor(r = 0, g = 0, b = 0, a = 1) {
         this._r = r;
@@ -45,12 +56,12 @@ export class Color {
 
 
     /**
-     * @description mix two colors together but subtractively
+     * @description mix two colors together using the subtractive method
      * @param {Color} color color to be mixed
      * @returns {Color} subtractive mixins of two color
      */
     mix(color) {
-        if(!(color instanceof Color) && !(color._)) {
+        if(!(color instanceof Color) && !(color._hasImplementInterface())) {
             console.error("Color mix expects an instance of Color Object")
             return;
         }
@@ -62,6 +73,10 @@ export class Color {
         return res;
     }
 
+    /**
+     * 
+     * @returns {string} color in rgba string
+     */
     toString() {
         return `rgba(${this.r}, ${this.g}, ${this.b}, ${this.a})`;
     }
@@ -69,7 +84,6 @@ export class Color {
 };
 
 
-/** ROYGBIV */
 Object.defineProperties(Color, {
     Red: { value: new Color(255, 0, 0) },
     Orange: {value: new Color(255, 0, 0) },
