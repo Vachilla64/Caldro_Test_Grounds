@@ -124,9 +124,11 @@ export class Vector {
      * plus the w component
      */
     toArray() {
-        return Array.from({length: this.components.length}, (v, i) => {
+        const arr = Array.from({length: this.components.length}, (v, i) => {
             return this[this.components[i]];
-        }).push(this.w);
+        });
+        arr.push(this.w);
+        return arr;
     }
 
 

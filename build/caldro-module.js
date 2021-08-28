@@ -28,7 +28,9 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
+ * 
+ * https://cdn.jsdelivr.net/gh/RuntimeTerror418/Caldro@v0.0.7-alpha/
 */
 
-export {Vector2, Vector3} from "../Caldro@v0.0.7-alpha/src/core/vector.js";
-export {Mat3x3, Mat4x4} from "../Caldro@v0.0.7-alpha/src/core/matrices.js";
+export {Vector2, Vector3} from "../src/core/vector.js";
+export {Mat3x3, Mat4x4} from "../src/core/matrices.js";

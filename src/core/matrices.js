@@ -1,3 +1,6 @@
+import {Vector2, Vector3} from "./vector.js";
+
+
 const Mat = (length => {
 
     if(length !== 3 && length !== 4)
@@ -82,13 +85,18 @@ const Mat = (length => {
     }
 
 
-    mat.multiplyVector = (m, v) => {
-        const column = m.length / 3;
-        const row = v.length;
-        if(column != row) {
+    mat.multiplyVector = (m, vec) => {
+
+        if(!(vec instanceof Vector2) && !(vec instanceof Vector3))
+            throw TypeError("Vector must be an instance of `Vector2` or `Vector3` when multiplying matrices by a vector");
+
+        const column = m.length / length;
+        const row = vec.components.length + 1;
+        if(column != row) 
             throw TypeError("Left hand column must be equal to right hand row");
-        };
+        
         let sum = 0;
+        let v = vec.toArray();
         let res = [];
         for(let i=0; i < row; i++) {
             sum = 0;
@@ -97,7 +105,9 @@ const Mat = (length => {
             };
             res[i] = sum;
         };
-        return res;
+        v = row === 4 ? new Vector3(res[0], res[1], res[2], res[3]) 
+            : new Vector2(res[0], res[1], res[2]);
+        return v;
     };
 
 
@@ -156,36 +166,49 @@ export class Mat4x4 {
 
     static pitchRotation(a) {
         let m = this.create();
-        m[0][0] = 1;
-        m[1][1] = Math.cos(a);
-        m[1][2] = -Math.sin(a);
-        m[2][1] = Math.sin(a);
-        m[2][2] = Math.cos(a);
-        m[3][3] = 1;
+        m[0] = 1;
+        m[5] = Math.cos(a);
+        m[6] = -Math.sin(a);
+        m[9] = Math.sin(a);
+        m[10] = Math.cos(a);
+        m[15] = 1;
         return m;
     }
 
     static yawRotation(a) {
         let m = this.create();
-        m[0][0] = Math.cos(a);
-        m[0][2] = -Math.sin(a);
-        m[1][1] = 1;
-        m[2][0] = Math.sin(a);
-        m[2][2] = Math.cos(a);
-        m[3][3] = 1;
+        m[0] = Math.cos(a);
+        m[6] = -Math.sin(a);
+        m[5] = 1;
+        m[8] = Math.sin(a);
+        m[10] = Math.cos(a);
+        m[15] = 1;
         return m;
     }
 
     static rollRotation(a) {
         let m = this.create();
-        m[0][0] = Math.cos(a);
-        m[0][1] = -Math.sin(a);
-        m[1][0] = Math.sin(a);
-        m[1][1] = Math.cos(a);
-        m[2][2] = 1;
-        m[3][3] = 1;
+        m[0] = Math.cos(a);
+        m[1] = -Math.sin(a);
+        m[4] = Math.sin(a);
+        m[5] = Math.cos(a);
+        m[10] = 1;
+        m[15] = 1;
         return m;
     }
+
+    // https://en.wikipedia.org/wiki/Orthographic_projection
+    static orthographicProjection(left, right, bottom, top, near, far) {
+        let m = this.create();
+        m[0] = 2 / (right - left);
+        m[3] = -(right + left) / (right - left);
+        m[5] = 2 / (top - bottom);
+        m[7] = -(top + bottom) / (top - bottom);
+        m[10] = -2 / (far - near);
+        m[11] = -(far + near) / (far - near);
+        m[15] = 1;
+        return m;
+    };
 
 };
 
