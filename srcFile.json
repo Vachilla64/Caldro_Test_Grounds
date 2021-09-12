@@ -1,29 +1,16 @@
 {
     "core": [
         "util",
-        "constants",
         "vector",
-        "matrices",
-        "color"
+        "matrices"
     ],
 
-    "network": [
-        "preloader",
-        "indexdb",
-        "firebase"
+    "dom": [
+        "canvas",
+        "scene"
     ],
 
-    "window": [
-        "container",
-        "loader",
-        "gameArea"
-    ],
-
-    "physics": [
-        "collision"
-    ],
-    
     "graphics": [
-        "shape"
+        "sprite"
     ]
 }

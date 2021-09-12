@@ -1,4 +1,32 @@
-/**
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: caldro.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: caldro.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
  * @abstract
  * @class 
  * Base class for Vector Object
@@ -35,7 +63,7 @@ class Vector {
         this.type = type;
         this.components = type == "2d" ? ["x", "y"] : ["x", "y", "z"];
         const _length = type === "2d" ? 2 : 3;
-        for(let i=0; i < _length; i++) 
+        for(let i=0; i &lt; _length; i++) 
             this[this.components[i]] = args[i] || 0;
     }
 
@@ -120,7 +148,7 @@ class Vector {
 
     /**
      * Converts a vector to an array
-     * @returns {Array.<number>} An array having the values of each components in the vector respectively
+     * @returns {Array.&lt;number>} An array having the values of each components in the vector respectively
      * plus the w component
      */
     toArray() {
@@ -237,7 +265,7 @@ class Vector3 extends Vector {
 
 const Mat = (length => {
 
-    if(length !== 3 && length !== 4)
+    if(length !== 3 &amp;&amp; length !== 4)
         throw TypeError("Only a 3x3 and 4x4 matrix supported");
 
     const mat = {};
@@ -268,7 +296,7 @@ const Mat = (length => {
      */
     mat.diagonal = (...arg) => {
         let m = mat.create();
-        for(let i=0; i < length; i++) 
+        for(let i=0; i &lt; length; i++) 
             m[i * length + i] = arg[i] || 0;
         return m;
     };
@@ -283,8 +311,8 @@ const Mat = (length => {
 
     mat.translate = (...args) => {
         let m = mat.identity();
-        for(let i=0; i < length; i++) {
-            for(let j=0; j < length; j++) {
+        for(let i=0; i &lt; length; i++) {
+            for(let j=0; j &lt; length; j++) {
                 if(j + 1 == length) 
                     m[i * length + j] = args[i] || 1;
             }
@@ -296,8 +324,8 @@ const Mat = (length => {
     mat.transpose = m => {
         const size = m.length / length;
         const copy = mat.clone(m);
-        for(let i=0; i < size; i++) {
-            for(let j=0; j < size; j++) {
+        for(let i=0; i &lt; size; i++) {
+            for(let j=0; j &lt; size; j++) {
                 m[i * length + j] = copy[j * length + i];
             }
         };
@@ -308,8 +336,8 @@ const Mat = (length => {
     mat.rotate = (m, clockwise = true) => {
         const size = m.length / length;
         const copy = mat.clone(m);
-        for(let i=0; i < size; i++) {
-            for(let j=0; j < size; j++) {
+        for(let i=0; i &lt; size; i++) {
+            for(let j=0; j &lt; size; j++) {
                 let y = clockwise ? length - 1 - j : j;
                 let x = clockwise ? i : length - 1 - i;
                 m[i * length + j] = copy[y * length + x];
@@ -321,7 +349,7 @@ const Mat = (length => {
 
     mat.multiplyVector = (m, vec) => {
 
-        if(!(vec instanceof Vector2) && !(vec instanceof Vector3))
+        if(!(vec instanceof Vector2) &amp;&amp; !(vec instanceof Vector3))
             throw TypeError("Vector must be an instance of `Vector2` or `Vector3` when multiplying matrices by a vector");
 
         const column = m.length / length;
@@ -332,9 +360,9 @@ const Mat = (length => {
         let sum = 0;
         let v = vec.toArray();
         let res = [];
-        for(let i=0; i < row; i++) {
+        for(let i=0; i &lt; row; i++) {
             sum = 0;
-            for(let j=0; j < column; j++) {
+            for(let j=0; j &lt; column; j++) {
                 sum += m[i * length + j] * v[j];
             };
             res[i] = sum;
@@ -354,10 +382,10 @@ const Mat = (length => {
         };
         const copy = mat.create();
         let sum;
-        for(let i=0; i < size; i++) {
-            for(let j=0; j < size; j++) {
+        for(let i=0; i &lt; size; i++) {
+            for(let j=0; j &lt; size; j++) {
                 sum = 0;
-                for(let k=0; k < size; k++) {
+                for(let k=0; k &lt; size; k++) {
                     let a = m1[i * length + k];
                     let b = m2[k * length + j];
                     sum += a * b;
@@ -455,8 +483,8 @@ Object.assign(Mat4x4, Mat(4));
 // background-color: red	#result
 const stringToCssFormat = (string) => {
 	let res = "";
-	for(let i=0; i < string.length; i++) {
-		if(string[i].codePointAt() >= 65 && string[i].codePointAt() <=90) {
+	for(let i=0; i &lt; string.length; i++) {
+		if(string[i].codePointAt() >= 65 &amp;&amp; string[i].codePointAt() &lt;=90) {
 			res += "-";
 			res += string[i].toLowerCase();
 			res += string[++i];
@@ -470,7 +498,7 @@ const splitCSSValue = val => {
 	let res = ["", ""];
 	let i = 0;
 	let sVal = String(val);
-	while(i < sVal.length) {
+	while(i &lt; sVal.length) {
 		let current = sVal[i];
 		if(isNaN(current))
 			res[1] += current;
@@ -489,7 +517,7 @@ const splitCSSValue = val => {
 const deviceName = () => {
 	const devices = [];
 	// Opera 8.0+
-	const isOpera = (!!window.opr && !!opr.addons) || !!window.opera || navigator.userAgent.indexOf('OPR/') >= 0;
+	const isOpera = (!!window.opr &amp;&amp; !!opr.addons) || !!window.opera || navigator.userAgent.indexOf('OPR/') >= 0;
 	devices.push(isOpera);
 	// Firefox 1.0+
 	const isFirefox = typeof InstallTrigger !== 'undefined';
@@ -501,13 +529,13 @@ const deviceName = () => {
 	const isIE = /*@cc_on!@*/false || !!document.documentMode;
 	devices.push(isIE);
 	// Edge 20+
-	const isEdge = !isIE && !!window.StyleMedia;
+	const isEdge = !isIE &amp;&amp; !!window.StyleMedia;
 	devices.push(isEdge);
 	// Chrome 1+
-	const isChrome = !!window.chrome && !!window.chrome.webstore;
+	const isChrome = !!window.chrome &amp;&amp; !!window.chrome.webstore;
 	devices.push(isChrome);
 	// Blink engine detection
-	const isBlink = (isChrome || isOpera) && !!window.CSS;
+	const isBlink = (isChrome || isOpera) &amp;&amp; !!window.CSS;
 	devices.push(isBlink);
 	// ios
 	const isIos = false;
@@ -695,10 +723,10 @@ class Canvas {
                     let angle = Math.atan2(diffY, diffX);
                     let direction;
                     if(Math.abs(diffX) > Math.abs(diffY)) {
-                        if(diffX < 0) direction = "left";
+                        if(diffX &lt; 0) direction = "left";
                         else direction = "right";
                     } else {
-                        if(diffY < 0) direction = "up";
+                        if(diffY &lt; 0) direction = "up";
                         else direction = "down";
                     }
                     cb().onSwipeMove({evt: e, direction, angle, 
@@ -807,7 +835,7 @@ class Sprite {
         if(!(typeof this.update === "function"))
             throw "abstractError";
 
-        if(args.length < 2)
+        if(args.length &lt; 2)
             throw "Length Error";
 
         this.animationFrames = args.splice(0, args.length - 1); 
@@ -890,3 +918,26 @@ class ImageSwapSprite extends Sprite {
         return this.animationFrames[this.frameCounter];
     }
 };
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-caldro.html">caldro</a></li></ul><h3>Classes</h3><ul><li><a href="module-caldro-Canvas.html">Canvas</a></li><li><a href="module-caldro-ImageSwapSprite.html">ImageSwapSprite</a></li><li><a href="module-caldro-Vector2.html">Vector2</a></li><li><a href="module-caldro-Vector3.html">Vector3</a></li><li><a href="Vector.html">Vector</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.7</a> on Mon Sep 13 2021 00:04:44 GMT+0100 (West Africa Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

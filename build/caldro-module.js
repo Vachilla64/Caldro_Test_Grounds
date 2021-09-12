@@ -34,3 +34,9 @@
 
 export {Vector2, Vector3} from "../src/core/vector.js";
 export {Mat3x3, Mat4x4} from "../src/core/matrices.js";
+export * as Util from "../src/core/util.js";
+
+export * as Sprite from "../src/graphics/sprite.js";
+
+export { Scene } from "../src/dom/scene.js";
+export { Canvas } from "../src/dom/canvas.js";
