@@ -2,7 +2,8 @@ class BlinkingText extends HTMLParagraphElement
 {
     constructor()
     {
-        
+        this.testText = "Caldro Sample test";
+    
     }
 };
 
