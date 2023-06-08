@@ -1,0 +1,16 @@
+{
+    "core": [
+        "util",
+        "vector",
+        "matrices"
+    ],
+
+    "dom": [
+        "canvas",
+        "scene"
+    ],
+
+    "graphics": [
+        "sprite"
+    ]
+}
