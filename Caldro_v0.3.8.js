@@ -1,4 +1,4 @@
-"CALDRO VERSION 0.3.7 [SID] {Big Library Wide update}" 
+"CALDRO VERSION 0.3.8 [SID] {Big Library Wide update}" 
  "FLAGS: "
   "Backwards Incompatable Update [BIU]"
   "MOSTLY Stable update [PSU]"
