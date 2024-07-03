@@ -1,0 +1,47 @@
+<!doctype html>
+<!--
+@author github.com/bytenol
+@date 30th june, 2024
+@brief A demonstration on how to create the most simplest caldro scene.
+Caldro encourages the Object Oriented Programming Paradigm so i guess that's cool
+-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Scene | Caldro</title>
+</head>
+<body>
+    <script type="module">
+        import * as Caldro from "../build/src/core/Caldro.js";
+        import {Scene} from "../build/src/core/Scene.js";
+
+        class BasicWindow extends Scene {
+            constructor() {
+                super(null);
+                this.w = 640
+                this.h = 480;
+            }
+
+        }
+
+        const params = {
+            // width: innerWidth,
+            // height: innerHeight,
+            // renderer: "webgl2",
+            parent: document.body,
+            scene: new BasicWindow(),
+            physics: null,
+            orientation: "portrait"
+        };
+
+        // is there anything that goes wrong, lets find out
+        if (!Caldro.init(params)) throw new Error(Caldro.getError());
+
+        // or just start the engine
+        Caldro.start();
+    </script>
+</body>
+</html>
