@@ -32,11 +32,21 @@
  * https://cdn.jsdelivr.net/gh/RuntimeTerror418/Caldro@v0.0.7-alpha/
 */
 
+<<<<<<< HEAD
 export {Vector2, Vector3} from "../src/core/vector.js";
 export {Mat3x3, Mat4x4} from "../src/core/matrices.js";
 export * as Util from "../src/core/util.js";
+=======
+export {Vector2, Vector3} from "../src/math/vector.js";
+export {Mat3x3, Mat4x4} from "../src/math/matrices.js";
+export * as Util from "../src/math/util.js";
+>>>>>>> 7edbd10 (hardware_accelerated_renderer)
 
 export * as Sprite from "../src/graphics/sprite.js";
 
 export { Scene } from "../src/dom/scene.js";
+<<<<<<< HEAD
 export { Canvas } from "../src/dom/canvas.js";
+=======
+export { Canvas } from "../src/math/canvas.js";
+>>>>>>> 7edbd10 (hardware_accelerated_renderer)
